@@ -61,7 +61,7 @@ const ExamRegistrationsPage = () => {
   useEffect(() => {
     fetchData();
   }, []);
-
+  console.log(registrations, "registracije");
   // 2. Mapiranje podataka za tabelu
   const mappedRegistrations = registrations
     .filter(
@@ -213,7 +213,6 @@ const ExamRegistrationsPage = () => {
                             : "text-red-600 border-red-300"
                         }`}
                       >
-                        <option value={0}>N/A</option>
                         {gradeOptions.map((g) => (
                           <option key={g} value={g}>
                             {g}
