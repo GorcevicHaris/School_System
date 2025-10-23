@@ -61,6 +61,7 @@ const ExclamationCircleIcon = (props) => (
 const StudentExamRegistrationPage = () => {
   const [availableExams, setAvailableExams] = useState([]);
   const [registeredExamIds, setRegisteredExamIds] = useState([]);
+  const [allRegistrations, setAllRegistrations] = useState([]); // ⭐ Dodato za čuvanje svih prijava
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -92,8 +93,16 @@ const StudentExamRegistrationPage = () => {
         if (subjectRes.success) setSubjects(subjectRes.data);
 
         if (regRes.success) {
-          const registeredIds = regRes.data.map((r) => r.exam_id);
-          setRegisteredExamIds(registeredIds);
+          // Čuvaj SVE prijave sa svim statusima
+          const allRegistrations = regRes.data;
+
+          // Za UI - prikaži samo prijave koje su "prijavljen" ili "polozio"
+          // (Pao status omogućava ponovno prijavljivanje)
+          const activeRegistrationIds = allRegistrations
+            .filter((r) => r.status === "prijavljen" || r.status === "polozio")
+            .map((r) => r.exam_id);
+
+          setRegisteredExamIds(activeRegistrationIds);
         }
 
         if (!examRes.success || !subjectRes.success || !regRes.success) {

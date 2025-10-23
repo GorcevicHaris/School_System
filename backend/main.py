@@ -298,7 +298,6 @@ def login(data: LoginData, db: Session = Depends(get_db)):
         data={"sub": professor.username, "id": professor.id, "role": "professor"},
         expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
-
     return {
         "access_token": access_token,
         "token_type": "bearer",
@@ -431,6 +430,7 @@ def get_all_subjects_student(db: Session = Depends(get_db), current_student: Stu
 def create_exam(exam: ExamCreate, db: Session = Depends(get_db), current_professor: Professor = Depends(get_current_professor)):
     # ⭐ Proveri da li je profesor vlasnik predmeta
     subject = db.query(Subject).filter(Subject.id == exam.subject_id).first()
+    #provera da li predmet postoji i da li ga je profesor uospet kreirao
     if not subject:
         raise HTTPException(status_code=404, detail="Predmet ne postoji")
     
@@ -439,7 +439,6 @@ def create_exam(exam: ExamCreate, db: Session = Depends(get_db), current_profess
             status_code=403, 
             detail=f"Nemate dozvolu da kreirate ispite za predmet '{subject.name}'. Samo profesor {subject.professor_id} može kreirati ispite."
         )
-    
     db_exam = Exam(**exam.dict())
     db.add(db_exam)
     db.commit()
@@ -452,6 +451,7 @@ def get_all_exams_professor(db: Session = Depends(get_db), current_professor: Pr
     # ⭐ Profesor vidi SAMO ispite za SVOJE predmete
     professor_subjects = db.query(Subject).filter(Subject.professor_id == current_professor.id).all()
     professor_subject_ids = [s.id for s in professor_subjects]
+    #ovo je ako profesor ima vise predmeta
     
     exams = db.query(Exam).filter(Exam.subject_id.in_(professor_subject_ids)).all()
     return exams

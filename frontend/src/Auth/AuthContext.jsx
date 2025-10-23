@@ -20,7 +20,6 @@ export const AuthProvider = ({ children }) => {
   // ---------------------------------
   const setAuthCookies = (resData) => {
     const { access_token, user_id, user_role } = resData;
-
     setToken(access_token);
     setUserId(user_id);
     setUserRole(user_role);
@@ -29,7 +28,7 @@ export const AuthProvider = ({ children }) => {
     Cookies.set("user_id", user_id, { expires: 1 });
     Cookies.set("user_role", user_role, { expires: 1 });
   };
-
+  console.log(userRole, "rola");
   // ---------------------------------
   // AXIOS INTERCEPTOR
   // ---------------------------------
@@ -261,7 +260,6 @@ export const AuthProvider = ({ children }) => {
 
   const getExams = async () => {
     try {
-      // Dinamički odaberi endpoint na osnovu uloge
       const endpoint =
         userRole === "student"
           ? `${API_URL}/student/exams`
@@ -386,7 +384,10 @@ export const AuthProvider = ({ children }) => {
       };
     }
   };
-
+  //  getExamRegistrations(),
+  //         getExams(),
+  //         getStudents(),
+  //         getSubjects(),
   const value = {
     professor,
     student,

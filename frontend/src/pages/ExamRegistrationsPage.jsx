@@ -8,7 +8,7 @@ import {
 } from "react-icons/fa";
 
 // Opcije za grade i status (prema Vašem FastAPI Enum-u)
-const gradeOptions = [5, 6, 7, 8, 9, 10];
+const gradeOptions = ["/", 5, 6, 7, 8, 9, 10];
 const statusOptions = {
   prijavljen: {
     label: "Prijavljen",
