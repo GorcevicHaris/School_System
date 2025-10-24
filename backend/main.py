@@ -423,6 +423,25 @@ def get_all_subjects_student(db: Session = Depends(get_db), current_student: Stu
     subjects = db.query(Subject).all()
     return subjects
 
+@app.delete("/delete/subject/{subject_id}")
+def delete_subject(
+    subject_id:int,
+    db:Session = Depends(get_db),
+    current_professor:Professor = Depends(get_current_professor)
+):
+    subject = db.query(Subject).filter(Subject.id == subject_id).first()
+    if not subject :
+        raise HTTPException(status_code=404,detail="Predmet ne postoji")
+    
+    if subject.professor_id != current_professor.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Nemate dozvolu jer ovo nije vas predmet"
+        )
+    db.delete(subject)
+    db.commit()
+
+    return {"success":True,"message":f"Predmet ' {subject.name} je uspesno obrisan"}
 # -------------------------------
 # EXAM ENDPOINTS
 # -------------------------------

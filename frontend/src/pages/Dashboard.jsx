@@ -8,6 +8,7 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-8">
+      <ExamPage />
       <h1 className="text-3xl font-extrabold text-gray-900">
         Dobrodošli, Prof. {professor.name}! 👋
       </h1>

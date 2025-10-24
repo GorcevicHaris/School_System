@@ -110,7 +110,8 @@ const SubjectsPage = () => {
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { professor, getSubjects, createSubject } = useContext(AuthContext);
+  const { professor, getSubjects, createSubject, deleteSubject } =
+    useContext(AuthContext);
 
   const fetchSubjects = async () => {
     setLoading(true);
@@ -133,6 +134,19 @@ const SubjectsPage = () => {
       fetchSubjects(); // Osveži listu
     }
     return result;
+  };
+
+  const handleDeleteSubject = async (subjectId) => {
+    if (
+      window.confirm("Da li ste sigurni da zelite da izbrisete ovaj predmet")
+    ) {
+      const result = await deleteSubject(subjectId);
+      if (result.success) {
+        fetchSubjects();
+      } else {
+        alert(`Greska pri brisanju ${result.error}`);
+      }
+    }
   };
 
   const professorSubjects = subjects.filter(
@@ -190,6 +204,14 @@ const SubjectsPage = () => {
                 <tr key={subject.id} className="hover:bg-indigo-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-indigo-900 flex items-center">
                     <FaTag className="mr-2 text-indigo-400" /> {subject.name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                    <button
+                      onClick={() => handleDeleteSubject(subject.id)}
+                      className="text-red-600 hover:text-red-900 mx-2 p-1"
+                    >
+                      Izbriši
+                    </button>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {subject.espb}

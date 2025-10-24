@@ -243,6 +243,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const deleteSubject = async (subject_Id) => {
+    try {
+      await axios.delete(`${API_URL}/delete/subject/${subject_Id}`);
+      return { success: true };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.response?.data?.detail || "Brisanje nije uspelo",
+      };
+    }
+  };
+
   // ---------------------------------
   // CRUD FUNKCIJE - ISPITI
   // ---------------------------------
@@ -413,6 +425,7 @@ export const AuthProvider = ({ children }) => {
     // Subject CRUD
     createSubject,
     getSubjects,
+    deleteSubject,
 
     // Exam CRUD
     createExam,
