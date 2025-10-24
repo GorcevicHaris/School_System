@@ -86,7 +86,7 @@ const ExamRegistrationsPage = () => {
         subject_name: subject?.name || "Nepoznat Predmet",
       };
     });
-
+  console.log(registrations, "registracije");
   // 3. RUKOVANJE AŽURIRANJEM OCENE/STATUSA
   const handleUpdate = async (regId, field, value) => {
     const updateData = { [field]: value };
@@ -128,8 +128,6 @@ const ExamRegistrationsPage = () => {
         <FaGraduationCap className="mr-3 text-indigo-600" /> Unos Ocena i Status
         Ispita
       </h2>
-
-      {/* Filter po Ispitu */}
       <div className="flex items-center space-x-4 bg-white p-4 rounded-xl shadow-md">
         <label className="font-semibold text-gray-700">
           Filtriraj po Ispitu:
@@ -143,7 +141,7 @@ const ExamRegistrationsPage = () => {
           {exams.map((exam) => {
             // POPRAVLJENO: Osiguravanje da je subject_id integer
             const subject = subjects.find(
-              (s) => s.id === Number(exam.subject_id)
+              (el) => el.id == Number(exam.subject_id)
             );
             return (
               <option key={exam.id} value={exam.id}>
@@ -220,8 +218,6 @@ const ExamRegistrationsPage = () => {
                         ))}
                       </select>
                     </td>
-
-                    {/* Prikaz Statusa */}
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <span
                         className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold leading-4 ${status.color} bg-opacity-10 bg-current`}

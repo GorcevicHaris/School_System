@@ -10,7 +10,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, date
 import enum
-
+# Sintaksa setattr(obj, attr_name, value) zahteva da prvi parametar bude objekat, drugi ime atributa (string), a treći nova vrednost.
 # -------------------------------
 # KONFIGURACIJA
 # -------------------------------
