@@ -396,6 +396,19 @@ export const AuthProvider = ({ children }) => {
       };
     }
   };
+
+  const deleteExam = async (examId) => {
+    try {
+      await axios.delete(`${API_URL}/delete/exam/${examId}`);
+      return { success: true };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.response?.data?.detail || "Brisanje ispita nije uspelo",
+      };
+    }
+  };
+
   //  getExamRegistrations(),
   //         getExams(),
   //         getStudents(),
@@ -439,6 +452,7 @@ export const AuthProvider = ({ children }) => {
     getExamRegistrationsByExam,
     updateExamRegistration,
     studentCreateExamRegistration, // ⭐⭐⭐ I OVO
+    deleteExam,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

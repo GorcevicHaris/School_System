@@ -625,6 +625,22 @@ def update_exam_registration(
     db.commit()
     db.refresh(registration)
     return registration
+@app.delete("/delete/exam/{exam_id}")
+def delete_exam(exam_id: int, db: Session = Depends(get_db), professor=Depends(get_current_professor)):
+    exam = db.query(Exam).filter(Exam.id == exam_id).first()
+    if not exam:
+        raise HTTPException(status_code=404, detail="Ispit ne postoji")
+    
+    subject = db.query(Subject).filter(Subject.id == exam.subject_id).first()
+    if not subject:
+        raise HTTPException(status_code=404, detail="Predmet ispita ne postoji")
+    
+    if subject.professor_id != professor.id:
+        raise HTTPException(status_code=403, detail="Nemate pravo da obrišete ovaj ispit")
+    
+    db.delete(exam)
+    db.commit()
+    return {"success": True}
 
 @app.get("/")
 def root():

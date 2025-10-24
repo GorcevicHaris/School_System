@@ -140,7 +140,7 @@ const ExamsPage = () => {
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { professor, getExams, getSubjects, createExam } =
+  const { professor, getExams, getSubjects, createExam, deleteExam } =
     useContext(AuthContext);
 
   const fetchData = async () => {
@@ -189,6 +189,17 @@ const ExamsPage = () => {
     return (
       <div className="text-center py-10 text-red-600">Greška: {error}</div>
     );
+
+  const handleDeleteExam = async (examId) => {
+    if (window.confirm("Da li ste sigurni da želite da obrišete ovaj ispit?")) {
+      const result = await deleteExam(examId);
+      if (result.success) {
+        fetchData(); // Osveži listu ispita
+      } else {
+        alert(result.error);
+      }
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -250,7 +261,16 @@ const ExamsPage = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {exam.id}
+                    <div className="flex items-center space-x-3">
+                      <span>{exam.id}</span>
+                      <button
+                        onClick={() => handleDeleteExam(exam.id)}
+                        className="text-red-600 hover:text-red-900 p-1 rounded transition"
+                        title="Obriši ispit"
+                      >
+                        <FaTrashAlt />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
