@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../Auth/AuthContext";
-import { FaBook, FaPlus, FaTag } from "react-icons/fa";
+import { FaBook, FaPlus, FaTag, FaTrashAlt } from "react-icons/fa";
 
 // Komponenta za modal (dodavanje predmeta)
 const SubjectFormModal = ({ professorId, onClose, onSave }) => {
@@ -201,29 +201,34 @@ const SubjectsPage = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {professorSubjects.length > 0 ? (
               professorSubjects.map((subject) => (
-                <tr key={subject.id} className="hover:bg-indigo-50">
+                <tr key={subject.id} className="hover:bg-indigo-50 transition">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-indigo-900 flex items-center">
                     <FaTag className="mr-2 text-indigo-400" /> {subject.name}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                    <button
-                      onClick={() => handleDeleteSubject(subject.id)}
-                      className="text-red-600 hover:text-red-900 mx-2 p-1"
-                    >
-                      Izbriši
-                    </button>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">
                     {subject.espb}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
                     {subject.professor_id} (Vi)
+                  </td>
+                  {/* Dugme za brisanje skroz desno */}
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                    <button
+                      onClick={() => handleDeleteSubject(subject.id)}
+                      className="text-red-500 hover:text-red-700 transition-colors p-2 rounded-full hover:bg-red-100"
+                      title="Izbriši predmet"
+                    >
+                      <FaTrashAlt />
+                    </button>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="3" className="px-6 py-4 text-center text-gray-500">
+                <td
+                  colSpan="4"
+                  className="px-6 py-4 text-center text-gray-500 italic"
+                >
                   Još niste kreirali nijedan predmet.
                 </td>
               </tr>
