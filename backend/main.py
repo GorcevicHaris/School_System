@@ -497,37 +497,82 @@ class StudentExamRegistrationCreate(BaseModel):
     exam_id: int
 
 # ENDPOINT ZA STUDENTE - prijava na ispit
+# ENDPOINT ZA STUDENTE - prijava na ispit
 @app.post("/student/exam-registrations", response_model=ExamRegistrationResponse)
 def student_create_exam_registration(
     registration: StudentExamRegistrationCreate, 
     db: Session = Depends(get_db), 
     current_student: Student = Depends(get_current_student)
 ):
-    # Student automatski koristi svoj ID iz tokena
+    # 1. Proveri da li ispit postoji
     exam = db.query(Exam).filter(Exam.id == registration.exam_id).first()
     if not exam:
         raise HTTPException(status_code=404, detail="Ispit ne postoji")
     
-    # Proveri da li je već prijavljen
-    existing = db.query(ExamRegistration).filter(
+    # 2. Proveri da li je već prijavljen na OVAJ KONKRETAN ISPIT
+    existing_for_this_exam = db.query(ExamRegistration).filter(
         ExamRegistration.student_id == current_student.id,
         ExamRegistration.exam_id == registration.exam_id
     ).first()
     
-    if existing:
-        raise HTTPException(status_code=400, detail="Već ste prijavljeni na ovaj ispit")
+    if existing_for_this_exam:
+        # Ako je vec prijavljen na ovaj konkretan ispit
+        if existing_for_this_exam.status == ExamStatus.prijavljen:
+            raise HTTPException(status_code=400, detail="Već ste prijavljeni na ovaj ispitni rok")
+        elif existing_for_this_exam.status == ExamStatus.polozio:
+            raise HTTPException(status_code=400, detail="Već ste položili ovaj predmet")
+        # Ako je "pao" na ovom ispitu, ne sme da se prijavi ponovo na ISTI ispit
+        elif existing_for_this_exam.status == ExamStatus.pao:
+            raise HTTPException(status_code=400, detail="Već ste pali na ovom ispitnom roku. Sačekajte novi rok.")
     
-    # Kreiraj novu prijavu
+    # 3. ⭐ Proveri da li postoji DRUGA AKTIVNA PRIJAVA za ISTI PREDMET
+    # Dohvati sve ispite za ovaj predmet
+    all_exams_for_subject = db.query(Exam).filter(Exam.subject_id == exam.subject_id).all()
+    all_exam_ids_for_subject = [e.id for e in all_exams_for_subject]
+    
+    # Proveri da li je prijavljen na bilo koji drugi ispit za isti predmet sa statusom "prijavljen"
+    active_registration = db.query(ExamRegistration).filter(
+        ExamRegistration.student_id == current_student.id,
+        ExamRegistration.exam_id.in_(all_exam_ids_for_subject),
+        ExamRegistration.status == ExamStatus.prijavljen
+    ).first()
+    
+    if active_registration:
+        raise HTTPException(
+            status_code=400, 
+            detail="Već ste prijavljeni na drugi ispitni rok za ovaj predmet. Ne možete biti prijavljeni na više rokova istovremeno."
+        )
+    
+    # 4. ⭐ Proveri da li je već položio ovaj predmet (na bilo kom ispitu)
+    passed_registration = db.query(ExamRegistration).filter(
+        ExamRegistration.student_id == current_student.id,
+        ExamRegistration.exam_id.in_(all_exam_ids_for_subject),
+        ExamRegistration.status == ExamStatus.polozio
+    ).first()
+    
+    if passed_registration:
+        raise HTTPException(status_code=400, detail="Već ste položili ovaj predmet")
+    
+    # 5. ⭐ Izračunaj broj pokušaja (COUNT) za PREDMET
+    all_registrations_for_subject = db.query(ExamRegistration).filter(
+        ExamRegistration.student_id == current_student.id,
+        ExamRegistration.exam_id.in_(all_exam_ids_for_subject)
+    ).all()
+    
+    # Broj pokušaja = broj svih prethodnih prijava (uključujući "pao") + 1 (trenutna prijava)
+    num_attempts = len(all_registrations_for_subject) + 1
+    
+    # 6. Kreiraj novu prijavu
     db_registration = ExamRegistration(
         student_id=current_student.id,
-        exam_id=registration.exam_id
+        exam_id=registration.exam_id,
+        num_of_applications=num_attempts
     )
     db.add(db_registration)
     db.commit()
     db.refresh(db_registration)
     
     return db_registration
-
 # ENDPOINT ZA PROFESORE - kreiranje prijave za studenta
 @app.post("/exam-registrations", response_model=ExamRegistrationResponse)
 def create_exam_registration(

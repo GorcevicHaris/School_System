@@ -90,7 +90,7 @@ const ExamRegistrationsPage = () => {
   // 3. RUKOVANJE AŽURIRANJEM OCENE/STATUSA
   const handleUpdate = async (regId, field, value) => {
     const updateData = { [field]: value };
-
+    //znaci field ce da bude key - grade i value ce da bude e,target.value koji dolazi iz optiona
     // Specijalan slučaj: ako je ocena 5, status mora biti 'pao'
     if (field === "grade" && parseInt(value) === 5) {
       updateData.status = "pao";
@@ -111,6 +111,16 @@ const ExamRegistrationsPage = () => {
       // ZABRANJENI ALERT ZAMENJEN CONSOLE.ERROR
       console.error(`Greška pri ažuriranju: ${result.error}`);
     }
+  };
+
+  const calculateGrade = (points) => {
+    if (points === null || points === "") return "/";
+    if (points < 51) return 5;
+    if (points < 61) return 6;
+    if (points < 71) return 7;
+    if (points < 81) return 8;
+    if (points < 91) return 9;
+    return 10;
   };
 
   if (loading)
@@ -171,8 +181,12 @@ const ExamRegistrationsPage = () => {
                 Br. Prijava
               </th>
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Poeni
+              </th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Ocena
               </th>
+
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Status
               </th>
@@ -197,27 +211,63 @@ const ExamRegistrationsPage = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold text-indigo-600">
                       {reg.num_of_applications}
                     </td>
-
-                    {/* Unos Ocene */}
                     <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <select
-                        value={reg.grade}
-                        onChange={(e) =>
-                          handleUpdate(reg.id, "grade", e.target.value)
-                        }
-                        className={`p-1 border rounded-md font-bold ${
-                          reg.grade > 5
-                            ? "text-green-600 border-green-300"
-                            : "text-red-600 border-red-300"
-                        }`}
-                      >
-                        {gradeOptions.map((g) => (
-                          <option key={g} value={g}>
-                            {g}
-                          </option>
-                        ))}
-                      </select>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={reg.points ?? ""}
+                        onChange={(e) => {
+                          const val = e.target.value;
+
+                          // Ako je prazno, dozvoli brisanje
+                          if (val === "") {
+                            handleUpdate(reg.id, "points", null);
+                            setRegistrations((prev) =>
+                              prev.map((r) =>
+                                r.id === reg.id
+                                  ? { ...r, points: "", grade: "/" }
+                                  : r
+                              )
+                            );
+                            return;
+                          }
+                          //ovo je samo da ne bi imala 0 ispred i da bi mogli da brisemo sve brojeve
+
+                          let value = parseInt(val);
+                          if (isNaN(value)) value = 0;
+                          if (value > 100) value = 100;
+                          if (value < 0) value = 0;
+
+                          const newGrade = calculateGrade(value);
+                          const newStatus = newGrade === 5 ? "pao" : "polozio";
+
+                          // Ažuriraj i poene i ocenu i status u bazi
+                          handleUpdate(reg.id, "points", value);
+                          handleUpdate(reg.id, "grade", newGrade);
+                          handleUpdate(reg.id, "status", newStatus);
+
+                          // Ažuriraj lokalni state
+                          setRegistrations((prev) =>
+                            prev.map((r) =>
+                              r.id === reg.id
+                                ? {
+                                    ...r,
+                                    points: value,
+                                    grade: newGrade,
+                                    status: newStatus,
+                                  }
+                                : r
+                            )
+                          );
+                        }}
+                        className="w-20 p-1 text-center border rounded-md border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
+                      />
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center font-bold text-gray-700">
+                      {reg.grade === "/" ? "/" : reg.grade}
+                    </td>
+
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <span
                         className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold leading-4 ${status.color} bg-opacity-10 bg-current`}
