@@ -1,13 +1,25 @@
+// KOPIRAJ OVAJ KOD U SubjectsPage.jsx
 import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../Auth/AuthContext";
 import { FaBook, FaPlus, FaTag, FaTrashAlt } from "react-icons/fa";
 
-// Komponenta za modal (dodavanje predmeta)
+const DEPARTMENTS = [
+  "Računarstvo",
+  "Elektrotehnika",
+  "Mašinstvo",
+  "Građevinarstvo",
+  "Menadžment",
+];
+
+const YEARS = [1, 2, 3, 4];
+
 const SubjectFormModal = ({ professorId, onClose, onSave }) => {
   const [formData, setFormData] = useState({
     name: "",
-    espb: 6, // Default ESPB
+    espb: 6,
     professor_id: professorId,
+    year: 1,
+    department: "",
   });
   const [error, setError] = useState("");
 
@@ -15,7 +27,7 @@ const SubjectFormModal = ({ professorId, onClose, onSave }) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "espb" ? parseInt(value) : value,
+      [name]: name === "espb" || name === "year" ? parseInt(value) : value,
     }));
   };
 
@@ -25,6 +37,11 @@ const SubjectFormModal = ({ professorId, onClose, onSave }) => {
 
     if (formData.espb < 1 || formData.espb > 30) {
       setError("ESPB mora biti između 1 i 30.");
+      return;
+    }
+
+    if (!formData.department) {
+      setError("Morate odabrati departman.");
       return;
     }
 
@@ -43,9 +60,9 @@ const SubjectFormModal = ({ professorId, onClose, onSave }) => {
         <h3 className="text-2xl font-bold mb-4 text-gray-800">
           Kreiraj Novi Predmet
         </h3>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Naziv Predmeta
             </label>
             <input
@@ -54,30 +71,71 @@ const SubjectFormModal = ({ professorId, onClose, onSave }) => {
               value={formData.name}
               onChange={handleChange}
               required
-              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
               placeholder="Npr. Algoritmi i Strukture Podataka"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              ESPB Bodovi
-            </label>
-            <input
-              type="number"
-              name="espb"
-              value={formData.espb}
-              onChange={handleChange}
-              required
-              min="1"
-              max="30"
-              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Godina studija
+              </label>
+              <select
+                name="year"
+                value={formData.year}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                {YEARS.map((year) => (
+                  <option key={year} value={year}>
+                    {year}. godina
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                ESPB Bodovi
+              </label>
+              <input
+                type="number"
+                name="espb"
+                value={formData.espb}
+                onChange={handleChange}
+                required
+                min="1"
+                max="30"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
           </div>
 
-          <div className="text-sm text-gray-500">
-            * Predmet će biti automatski povezan sa Vašim ID-jem: **
-            {professorId}**
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Departman / Smer
+            </label>
+            <select
+              name="department"
+              value={formData.department}
+              onChange={handleChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="">-- Odaberite Departman --</option>
+              {DEPARTMENTS.map((dept) => (
+                <option key={dept} value={dept}>
+                  {dept}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="text-sm text-gray-500 bg-blue-50 p-3 rounded-md">
+            💡 <strong>Napomena:</strong> Samo studenti ovog departmana i
+            odgovarajuće godine će moći da prijave ovaj predmet.
           </div>
 
           {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
@@ -91,19 +149,19 @@ const SubjectFormModal = ({ professorId, onClose, onSave }) => {
               Poništi
             </button>
             <button
-              type="submit"
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition"
+              type="button"
+              onClick={handleSubmit}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition flex items-center"
             >
-              <FaPlus className="inline mr-1" /> Kreiraj
+              <FaPlus className="mr-1" /> Kreiraj
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
 };
 
-// Glavna SubjectsPage komponenta
 const SubjectsPage = () => {
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -131,20 +189,20 @@ const SubjectsPage = () => {
   const handleSaveSubject = async (subjectData) => {
     const result = await createSubject(subjectData);
     if (result.success) {
-      fetchSubjects(); // Osveži listu
+      fetchSubjects();
     }
     return result;
   };
 
   const handleDeleteSubject = async (subjectId) => {
     if (
-      window.confirm("Da li ste sigurni da zelite da izbrisete ovaj predmet")
+      window.confirm("Da li ste sigurni da želite da izbrišete ovaj predmet?")
     ) {
       const result = await deleteSubject(subjectId);
       if (result.success) {
         fetchSubjects();
       } else {
-        alert(`Greska pri brisanju ${result.error}`);
+        alert(`Greška pri brisanju: ${result.error}`);
       }
     }
   };
@@ -177,7 +235,6 @@ const SubjectsPage = () => {
         </button>
       </div>
 
-      {/* Tabela za Predmete */}
       <div className="bg-white shadow-xl rounded-xl overflow-hidden">
         <div className="p-4 bg-indigo-50 border-b border-indigo-200">
           <h3 className="font-semibold text-lg text-indigo-800">
@@ -190,11 +247,17 @@ const SubjectsPage = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Naziv
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                ESPB
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Godina
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                ID Profesora
+                Departman
+              </th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                ESPB
+              </th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Akcije
               </th>
             </tr>
           </thead>
@@ -205,14 +268,20 @@ const SubjectsPage = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-indigo-900 flex items-center">
                     <FaTag className="mr-2 text-indigo-400" /> {subject.name}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <span className="px-3 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-800">
+                      {subject.year}. godina
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    <span className="px-3 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                      {subject.department || "Nije definisan"}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center font-bold">
                     {subject.espb}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                    {subject.professor_id} (Vi)
-                  </td>
-                  {/* Dugme za brisanje skroz desno */}
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm">
                     <button
                       onClick={() => handleDeleteSubject(subject.id)}
                       className="text-red-500 hover:text-red-700 transition-colors p-2 rounded-full hover:bg-red-100"
@@ -226,7 +295,7 @@ const SubjectsPage = () => {
             ) : (
               <tr>
                 <td
-                  colSpan="4"
+                  colSpan="5"
                   className="px-6 py-4 text-center text-gray-500 italic"
                 >
                   Još niste kreirali nijedan predmet.
@@ -234,27 +303,32 @@ const SubjectsPage = () => {
               </tr>
             )}
 
-            {/* Dodatni predmeti (kao primer) */}
             {otherSubjects.length > 0 && (
               <>
                 <tr>
                   <td
-                    colSpan="3"
+                    colSpan="5"
                     className="px-6 py-3 bg-gray-100 text-center text-xs font-medium text-gray-600 uppercase tracking-wider"
                   >
-                    Drugi predmeti u sistemu
+                    Drugi predmeti u sistemu ({otherSubjects.length})
                   </td>
                 </tr>
-                {otherSubjects.slice(0, 3).map((subject) => (
+                {otherSubjects.slice(0, 5).map((subject) => (
                   <tr key={subject.id} className="text-gray-400 italic">
                     <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-600">
                       {subject.name}
                     </td>
-                    <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                      {subject.espb}
+                    <td className="px-6 py-3 whitespace-nowrap text-center text-xs text-gray-500">
+                      {subject.year}. god.
                     </td>
                     <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                      {subject.professor_id}
+                      {subject.department || "N/A"}
+                    </td>
+                    <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center">
+                      {subject.espb}
+                    </td>
+                    <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-400 text-center">
+                      -
                     </td>
                   </tr>
                 ))}

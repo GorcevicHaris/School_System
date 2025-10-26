@@ -10,7 +10,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, date
 import enum
-# Sintaksa setattr(obj, attr_name, value) zahteva da prvi parametar bude objekat, drugi ime atributa (string), a treći nova vrednost.
+
 # -------------------------------
 # KONFIGURACIJA
 # -------------------------------
@@ -54,6 +54,7 @@ class Student(Base):
     email = Column(String(100), unique=True, nullable=False)
     index_number = Column(String(20), unique=True, nullable=False)
     age_of_study = Column(Integer, nullable=False)
+    department = Column(String(50), nullable=True)  # ⭐ NOVO
 
 class Professor(Base):
     __tablename__ = "professors"
@@ -70,6 +71,8 @@ class Subject(Base):
     name = Column(String(100), nullable=False)
     espb = Column(Integer, nullable=False)
     professor_id = Column(Integer, ForeignKey("professors.id"), nullable=False)
+    year = Column(Integer, nullable=True)  # ⭐ NOVO - godina studija (1-4)
+    department = Column(String(50), nullable=True)  # ⭐ NOVO - smer/departman
 
 class Exam(Base):
     __tablename__ = "Exams"
@@ -89,7 +92,7 @@ class ExamRegistration(Base):
     status = Column(Enum(ExamStatus), default=ExamStatus.prijavljen)
 
 # -------------------------------
-# PYDANTIC ŠEME
+# PYDANTIC ŠEME - AŽURIRANE
 # -------------------------------
 class ProfessorRegister(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
@@ -119,6 +122,7 @@ class StudentResponse(BaseModel):
     email: str
     index_number: str
     age_of_study: int
+    department: Optional[str] = None  # ⭐ NOVO
 
     class Config:
         from_attributes = True
@@ -139,17 +143,22 @@ class StudentCreate(BaseModel):
     email: EmailStr
     index_number: str = Field(..., min_length=3, max_length=20)
     age_of_study: int = Field(..., ge=1, le=10)
+    department: Optional[str] = Field(None, max_length=50)  # ⭐ NOVO
 
 class SubjectCreate(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
     espb: int = Field(..., ge=1, le=30)
     professor_id: int
+    year: Optional[int] = Field(None, ge=1, le=4)  # ⭐ NOVO
+    department: Optional[str] = Field(None, max_length=50)  # ⭐ NOVO
 
 class SubjectResponse(BaseModel):
     id: int
     name: str
     espb: int
     professor_id: int
+    year: Optional[int] = None  # ⭐ NOVO
+    department: Optional[str] = None  # ⭐ NOVO
 
     class Config:
         from_attributes = True
@@ -261,6 +270,29 @@ def get_current_professor(credentials: HTTPAuthorizationCredentials = Depends(se
         raise HTTPException(status_code=404, detail="Professor not found")
 
     return professor
+
+# ⭐ NOVA HELPER FUNKCIJA - Provera da li student može prijaviti ispit
+def can_student_register_for_exam(student: Student, exam: Exam, db: Session) -> tuple[bool, str]:
+    """
+    Provera da li student ispunjava uslove za prijavu ispita.
+    Vraća (True/False, poruka)
+    """
+    subject = db.query(Subject).filter(Subject.id == exam.subject_id).first()
+    
+    if not subject:
+        return False, "Predmet ne postoji"
+    
+    # Provera departmana
+    if subject.department and student.department:
+        if subject.department != student.department:
+            return False, f"Ovaj predmet je samo za smer '{subject.department}'. Vi ste na smeru '{student.department}'."
+    
+    # Provera godine studija
+    if subject.year:
+        if student.age_of_study < subject.year:
+            return False, f"Ovaj predmet je za {subject.year}. godinu studija. Vi ste na {student.age_of_study}. godini."
+    
+    return True, "OK"
 
 # -------------------------------
 # AUTH ENDPOINTS - PROFESORI
@@ -411,16 +443,28 @@ def create_subject(subject: SubjectCreate, db: Session = Depends(get_db), curren
     db.refresh(db_subject)
     return db_subject
 
-# PROFESOR može videti sve predmete
 @app.get("/subjects", response_model=list[SubjectResponse])
 def get_all_subjects(db: Session = Depends(get_db), current_professor: Professor = Depends(get_current_professor)):
     subjects = db.query(Subject).all()
     return subjects
 
-# STUDENT može videti sve predmete
+# ⭐ STUDENT vidi samo predmete svog departmana i odgovarajuće godine
 @app.get("/student/subjects", response_model=list[SubjectResponse])
 def get_all_subjects_student(db: Session = Depends(get_db), current_student: Student = Depends(get_current_student)):
-    subjects = db.query(Subject).all()
+    query = db.query(Subject)
+    
+    # Filtriraj po departmanu ako student ima definisan departman
+    if current_student.department:
+        query = query.filter(
+            (Subject.department == current_student.department) | (Subject.department == None)
+        )
+    
+    # Filtriraj po godini - student vidi samo predmete svoje ili nižih godina
+    query = query.filter(
+        (Subject.year <= current_student.age_of_study) | (Subject.year == None)
+    )
+    
+    subjects = query.all()
     return subjects
 
 @app.delete("/delete/subject/{subject_id}")
@@ -442,14 +486,14 @@ def delete_subject(
     db.commit()
 
     return {"success":True,"message":f"Predmet ' {subject.name} je uspesno obrisan"}
+
 # -------------------------------
 # EXAM ENDPOINTS
 # -------------------------------
 @app.post("/exams", response_model=ExamResponse)
 def create_exam(exam: ExamCreate, db: Session = Depends(get_db), current_professor: Professor = Depends(get_current_professor)):
-    # ⭐ Proveri da li je profesor vlasnik predmeta
     subject = db.query(Subject).filter(Subject.id == exam.subject_id).first()
-    #provera da li predmet postoji i da li ga je profesor uospet kreirao
+    
     if not subject:
         raise HTTPException(status_code=404, detail="Predmet ne postoji")
     
@@ -464,21 +508,34 @@ def create_exam(exam: ExamCreate, db: Session = Depends(get_db), current_profess
     db.refresh(db_exam)
     return db_exam
 
-# PROFESOR može videti sve ispite (SAMO ZA SVOJE PREDMETE)
 @app.get("/exams", response_model=list[ExamResponse])
 def get_all_exams_professor(db: Session = Depends(get_db), current_professor: Professor = Depends(get_current_professor)):
-    # ⭐ Profesor vidi SAMO ispite za SVOJE predmete
     professor_subjects = db.query(Subject).filter(Subject.professor_id == current_professor.id).all()
     professor_subject_ids = [s.id for s in professor_subjects]
-    #ovo je ako profesor ima vise predmeta
     
     exams = db.query(Exam).filter(Exam.subject_id.in_(professor_subject_ids)).all()
     return exams
 
-# STUDENT može videti sve ispite (BEZ autentifikacije - zato radi!)
+# ⭐ STUDENT vidi samo ispite koji su relevantni za njegov departman i godinu
 @app.get("/student/exams", response_model=list[ExamResponse])
 def get_all_exams_student(db: Session = Depends(get_db), current_student: Student = Depends(get_current_student)):
-    exams = db.query(Exam).all()
+    # Prvo dohvati predmete koji su relevantni za studenta
+    subject_query = db.query(Subject)
+    
+    if current_student.department:
+        subject_query = subject_query.filter(
+            (Subject.department == current_student.department) | (Subject.department == None)
+        )
+    
+    subject_query = subject_query.filter(
+        (Subject.year <= current_student.age_of_study) | (Subject.year == None)
+    )
+    
+    relevant_subjects = subject_query.all()
+    relevant_subject_ids = [s.id for s in relevant_subjects]
+    
+    # Vrati samo ispite za te predmete
+    exams = db.query(Exam).filter(Exam.subject_id.in_(relevant_subject_ids)).all()
     return exams
 
 @app.get("/exams/{exam_id}", response_model=ExamResponse)
@@ -491,17 +548,14 @@ def get_exam(exam_id: int, db: Session = Depends(get_db), current_professor: Pro
 # -------------------------------
 # EXAM REGISTRATION ENDPOINTS
 # -------------------------------
-
-# Pydantic šema za studentsku prijavu (bez student_id)
 class StudentExamRegistrationCreate(BaseModel):
     exam_id: int
 
-# ENDPOINT ZA STUDENTE - prijava na ispit
-# ENDPOINT ZA STUDENTE - prijava na ispit
+# ⭐ AŽURIRANO - ENDPOINT ZA STUDENTE sa validacijom departmana i godine
 @app.post("/student/exam-registrations", response_model=ExamRegistrationResponse)
 def student_create_exam_registration(
-    registration: StudentExamRegistrationCreate, 
-    db: Session = Depends(get_db), 
+    registration: StudentExamRegistrationCreate,
+    db: Session = Depends(get_db),
     current_student: Student = Depends(get_current_student)
 ):
     # 1. Proveri da li ispit postoji
@@ -509,71 +563,51 @@ def student_create_exam_registration(
     if not exam:
         raise HTTPException(status_code=404, detail="Ispit ne postoji")
     
-    # 2. Proveri da li je već prijavljen na OVAJ KONKRETAN ISPIT
-    existing_for_this_exam = db.query(ExamRegistration).filter(
-        ExamRegistration.student_id == current_student.id,
-        ExamRegistration.exam_id == registration.exam_id
-    ).first()
+    # 2. ⭐ NOVA VALIDACIJA - Proveri da li student MOŽE prijaviti ovaj ispit
+    can_register, message = can_student_register_for_exam(current_student, exam, db)
+    if not can_register:
+        raise HTTPException(status_code=403, detail=message)
     
-    if existing_for_this_exam:
-        # Ako je vec prijavljen na ovaj konkretan ispit
-        if existing_for_this_exam.status == ExamStatus.prijavljen:
-            raise HTTPException(status_code=400, detail="Već ste prijavljeni na ovaj ispitni rok")
-        elif existing_for_this_exam.status == ExamStatus.polozio:
-            raise HTTPException(status_code=400, detail="Već ste položili ovaj predmet")
-        # Ako je "pao" na ovom ispitu, ne sme da se prijavi ponovo na ISTI ispit
-        elif existing_for_this_exam.status == ExamStatus.pao:
-            raise HTTPException(status_code=400, detail="Već ste pali na ovom ispitnom roku. Sačekajte novi rok.")
+    # 3. Dohvati SVE id od ispita za ovaj predmet
+    all_exam_ids_for_subject = [
+        e.id for e in db.query(Exam.id).filter(Exam.subject_id == exam.subject_id).all()
+    ]
     
-    # 3. ⭐ Proveri da li postoji DRUGA AKTIVNA PRIJAVA za ISTI PREDMET
-    # Dohvati sve ispite za ovaj predmet
-    all_exams_for_subject = db.query(Exam).filter(Exam.subject_id == exam.subject_id).all()
-    all_exam_ids_for_subject = [e.id for e in all_exams_for_subject]
-    
-    # Proveri da li je prijavljen na bilo koji drugi ispit za isti predmet sa statusom "prijavljen"
-    active_registration = db.query(ExamRegistration).filter(
-        ExamRegistration.student_id == current_student.id,
-        ExamRegistration.exam_id.in_(all_exam_ids_for_subject),
-        ExamRegistration.status == ExamStatus.prijavljen
-    ).first()
-    
-    if active_registration:
-        raise HTTPException(
-            status_code=400, 
-            detail="Već ste prijavljeni na drugi ispitni rok za ovaj predmet. Ne možete biti prijavljeni na više rokova istovremeno."
-        )
-    
-    # 4. ⭐ Proveri da li je već položio ovaj predmet (na bilo kom ispitu)
-    passed_registration = db.query(ExamRegistration).filter(
-        ExamRegistration.student_id == current_student.id,
-        ExamRegistration.exam_id.in_(all_exam_ids_for_subject),
-        ExamRegistration.status == ExamStatus.polozio
-    ).first()
-    
-    if passed_registration:
-        raise HTTPException(status_code=400, detail="Već ste položili ovaj predmet")
-    
-    # 5. ⭐ Izračunaj broj pokušaja (COUNT) za PREDMET
-    all_registrations_for_subject = db.query(ExamRegistration).filter(
+    # 4. Dohvati SVE prijave studenta za ovaj predmet
+    all_registrations = db.query(ExamRegistration).filter(
         ExamRegistration.student_id == current_student.id,
         ExamRegistration.exam_id.in_(all_exam_ids_for_subject)
     ).all()
     
-    # Broj pokušaja = broj svih prethodnih prijava (uključujući "pao") + 1 (trenutna prijava)
-    num_attempts = len(all_registrations_for_subject) + 1
+    # 5. Provere na osnovu već dohvaćenih podataka
+    for reg in all_registrations:
+        if reg.exam_id == registration.exam_id:
+            if reg.status == ExamStatus.prijavljen:
+                raise HTTPException(status_code=400, detail="Već ste prijavljeni na ovaj ispitni rok")
+            elif reg.status == ExamStatus.pao:
+                raise HTTPException(status_code=400, detail="Već ste pali na ovom roku. Sačekajte novi rok.")
+        
+        if reg.status == ExamStatus.prijavljen:
+            raise HTTPException(
+                status_code=400,
+                detail="Već ste prijavljeni na drugi ispitni rok za ovaj predmet"
+            )
+        
+        if reg.status == ExamStatus.polozio:
+            raise HTTPException(status_code=400, detail="Već ste položili ovaj predmet")
     
     # 6. Kreiraj novu prijavu
     db_registration = ExamRegistration(
         student_id=current_student.id,
         exam_id=registration.exam_id,
-        num_of_applications=num_attempts
+        num_of_applications=len(all_registrations) + 1
     )
     db.add(db_registration)
     db.commit()
     db.refresh(db_registration)
     
     return db_registration
-# ENDPOINT ZA PROFESORE - kreiranje prijave za studenta
+
 @app.post("/exam-registrations", response_model=ExamRegistrationResponse)
 def create_exam_registration(
     registration: ExamRegistrationCreate, 
@@ -605,23 +639,18 @@ def create_exam_registration(
 
 @app.get("/exam-registrations", response_model=list[ExamRegistrationResponse])
 def get_all_exam_registrations(db: Session = Depends(get_db), current_professor: Professor = Depends(get_current_professor)):
-    # ⭐ Profesor vidi SAMO prijave za SVOJE predmete
-    # 1. Pronađi sve predmete ovog profesora
     professor_subjects = db.query(Subject).filter(Subject.professor_id == current_professor.id).all()
     professor_subject_ids = [s.id for s in professor_subjects]
     
-    # 2. Pronađi sve ispite za te predmete
     professor_exams = db.query(Exam).filter(Exam.subject_id.in_(professor_subject_ids)).all()
     professor_exam_ids = [e.id for e in professor_exams]
     
-    # 3. Vrati samo prijave za te ispite
     registrations = db.query(ExamRegistration).filter(
         ExamRegistration.exam_id.in_(professor_exam_ids)
     ).all()
     
     return registrations
 
-# STUDENT vidi samo SVOJE prijave
 @app.get("/student/exam-registrations", response_model=list[ExamRegistrationResponse])
 def get_my_exam_registrations(db: Session = Depends(get_db), current_student: Student = Depends(get_current_student)):
     registrations = db.query(ExamRegistration).filter(
@@ -641,35 +670,31 @@ def update_exam_registration(
     db: Session = Depends(get_db), 
     current_professor: Professor = Depends(get_current_professor)
 ):
-    # 1. Pronađi prijavu
     registration = db.query(ExamRegistration).filter(ExamRegistration.id == registration_id).first()
     if not registration:
         raise HTTPException(status_code=404, detail="Prijava ne postoji")
     
-    # 2. Pronađi ispit
     exam = db.query(Exam).filter(Exam.id == registration.exam_id).first()
     if not exam:
         raise HTTPException(status_code=404, detail="Ispit ne postoji")
     
-    # 3. Pronađi predmet
     subject = db.query(Subject).filter(Subject.id == exam.subject_id).first()
     if not subject:
         raise HTTPException(status_code=404, detail="Predmet ne postoji")
     
-    # 4. ⭐ PROVERI DA LI JE PROFESOR VLASNIK PREDMETA
     if subject.professor_id != current_professor.id:
         raise HTTPException(
             status_code=403, 
             detail=f"Nemate dozvolu da menjate ocene za predmet '{subject.name}'. Samo profesor {subject.professor_id} može menjati ocene."
         )
     
-    # 5. Ažuriraj prijavu
     for key, value in update_data.dict(exclude_unset=True).items():
         setattr(registration, key, value)
     
     db.commit()
     db.refresh(registration)
     return registration
+
 @app.delete("/delete/exam/{exam_id}")
 def delete_exam(exam_id: int, db: Session = Depends(get_db), professor=Depends(get_current_professor)):
     exam = db.query(Exam).filter(Exam.id == exam_id).first()

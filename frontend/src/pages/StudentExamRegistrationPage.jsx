@@ -61,7 +61,7 @@ const ExclamationCircleIcon = (props) => (
 const StudentExamRegistrationPage = () => {
   const [availableExams, setAvailableExams] = useState([]);
   const [registeredExamIds, setRegisteredExamIds] = useState([]);
-  const [allRegistrations, setAllRegistrations] = useState([]); // ⭐ Dodato za čuvanje svih prijava
+  const [allRegistrations, setAllRegistrations] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -74,6 +74,7 @@ const StudentExamRegistrationPage = () => {
     getStudentRegistrations,
     studentCreateExamRegistration,
     userRole,
+    student, // ⭐ NOVO - Potrebno nam je za proveru departmana i godine
   } = useContext(AuthContext);
 
   useEffect(() => {
@@ -93,11 +94,9 @@ const StudentExamRegistrationPage = () => {
         if (subjectRes.success) setSubjects(subjectRes.data);
 
         if (regRes.success) {
-          // Čuvaj SVE prijave sa svim statusima
           const allRegistrations = regRes.data;
+          setAllRegistrations(allRegistrations); // ⭐ Čuvamo sve prijave
 
-          // Za UI - prikaži samo prijave koje su "prijavljen" ili "polozio"
-          // (Pao status omogućava ponovno prijavljivanje)
           const activeRegistrationIds = allRegistrations
             .filter((r) => r.status === "prijavljen" || r.status === "polozio")
             .map((r) => r.exam_id);
@@ -144,7 +143,14 @@ const StudentExamRegistrationPage = () => {
     if (result.success) {
       setMessage({ type: "success", text: "Uspešno ste prijavili ispit!" });
       setRegisteredExamIds((prevIds) => [...prevIds, examId]);
+
+      // ⭐ Osvježi podatke nakon uspješne prijave
+      const regRes = await getStudentRegistrations();
+      if (regRes.success) {
+        setAllRegistrations(regRes.data);
+      }
     } else {
+      // ⭐ Prikaži specifičnu grešku iz backenda
       setMessage({
         type: "error",
         text: result.error || "Prijava nije uspela zbog nepoznate greške.",
@@ -156,6 +162,41 @@ const StudentExamRegistrationPage = () => {
   const getSubjectName = (subjectId) => {
     const subject = subjects.find((s) => s.id === Number(subjectId));
     return subject?.name || "Nepoznat Predmet";
+  };
+
+  // ⭐ NOVA FUNKCIJA - Dobavi informacije o predmetu
+  const getSubjectInfo = (subjectId) => {
+    return subjects.find((s) => s.id === Number(subjectId));
+  };
+
+  // ⭐ NOVA FUNKCIJA - Proveri da li student ispunjava uslove za prijavu
+  const checkEligibility = (subjectInfo) => {
+    if (!subjectInfo || !student) return { eligible: true, reason: "" };
+
+    const departmentMatch =
+      !subjectInfo.department || subjectInfo.department === student.department;
+
+    const yearMatch =
+      !subjectInfo.year || subjectInfo.year <= student.age_of_study;
+
+    if (!departmentMatch && !yearMatch) {
+      return {
+        eligible: false,
+        reason: `Ovaj predmet je za smer "${subjectInfo.department}" i ${subjectInfo.year}. godinu studija.`,
+      };
+    } else if (!departmentMatch) {
+      return {
+        eligible: false,
+        reason: `Ovaj predmet je samo za smer "${subjectInfo.department}". Vi ste na smeru "${student.department}".`,
+      };
+    } else if (!yearMatch) {
+      return {
+        eligible: false,
+        reason: `Ovaj predmet je za ${subjectInfo.year}. godinu studija. Vi ste na ${student.age_of_study}. godini.`,
+      };
+    }
+
+    return { eligible: true, reason: "" };
   };
 
   // Prikaži SVE ispite, sortirane po datumu (i prošle i buduće)
@@ -202,6 +243,17 @@ const StudentExamRegistrationPage = () => {
           Pregledajte dostupne ispitne rokove i prijavite ispite na koje želite
           izaći
         </p>
+        {/* ⭐ NOVO - Prikaz informacija o studentu */}
+        {student && (
+          <div className="mt-4 bg-white bg-opacity-20 rounded-lg p-4">
+            <p className="text-sm">
+              <strong>Vaš smer:</strong>{" "}
+              {student.department || "Nije definisan"} |
+              <strong className="ml-3">Godina studija:</strong>{" "}
+              {student.age_of_study}
+            </p>
+          </div>
+        )}
       </div>
 
       {message && (
@@ -307,7 +359,13 @@ const StudentExamRegistrationPage = () => {
             sortedExams.map((exam) => {
               const isRegistered = registeredExamIds.includes(exam.id);
               const subjectName = getSubjectName(exam.subject_id);
+              const subjectInfo = getSubjectInfo(exam.subject_id);
               const isPastExam = new Date(exam.date) < new Date();
+
+              // ⭐ NOVA LOGIKA - Provera prava na prijavu
+              const eligibility = checkEligibility(subjectInfo);
+              const canRegister =
+                eligibility.eligible && !isPastExam && !isRegistered;
 
               return (
                 <div
@@ -317,15 +375,46 @@ const StudentExamRegistrationPage = () => {
                       ? "bg-indigo-50"
                       : isPastExam
                       ? "bg-gray-50 opacity-60"
+                      : !eligibility.eligible
+                      ? "bg-yellow-50" // ⭐ NOVO - Žuta pozadina za nedostupne ispite
                       : "hover:bg-gray-50"
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0 mr-6">
-                      <div className="flex items-center space-x-3 mb-2">
+                      <div className="flex items-center space-x-3 mb-2 flex-wrap">
                         <h4 className="text-xl font-bold text-gray-900">
                           {subjectName}
                         </h4>
+
+                        {/* ⭐ NOVO - Badge za departman */}
+                        {subjectInfo?.department && (
+                          <span
+                            className={`px-3 py-1 text-xs font-bold rounded-full ${
+                              !subjectInfo.department ||
+                              subjectInfo.department === student?.department
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            📚 {subjectInfo.department}
+                          </span>
+                        )}
+
+                        {/* ⭐ NOVO - Badge za godinu */}
+                        {subjectInfo?.year && (
+                          <span
+                            className={`px-3 py-1 text-xs font-bold rounded-full ${
+                              !subjectInfo.year ||
+                              subjectInfo.year <= student?.age_of_study
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-orange-100 text-orange-800"
+                            }`}
+                          >
+                            🎓 {subjectInfo.year}. godina
+                          </span>
+                        )}
+
                         <span
                           className={`px-3 py-1 text-xs font-bold rounded-full ${
                             exam.type === "pismeni"
@@ -335,13 +424,15 @@ const StudentExamRegistrationPage = () => {
                         >
                           {exam.type === "pismeni" ? "📝 Pismeni" : "🎤 Usmeni"}
                         </span>
+
                         {isPastExam && (
                           <span className="px-3 py-1 text-xs font-bold rounded-full bg-gray-200 text-gray-600">
                             ⏰ Prošao rok
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center space-x-4 text-sm text-gray-600">
+
+                      <div className="flex items-center space-x-4 text-sm text-gray-600 mb-2">
                         <span className="flex items-center font-medium">
                           <CalendarIcon className="w-4 h-4 mr-1.5" />
                           {new Date(exam.date).toLocaleDateString("sr-RS", {
@@ -352,6 +443,18 @@ const StudentExamRegistrationPage = () => {
                           })}
                         </span>
                       </div>
+
+                      {/* ⭐ NOVO - Upozorenje ako student ne ispunjava uslove */}
+                      {!eligibility.eligible &&
+                        !isRegistered &&
+                        !isPastExam && (
+                          <div className="mt-2 flex items-start">
+                            <ExclamationCircleIcon className="h-5 w-5 text-orange-500 mr-2 flex-shrink-0 mt-0.5" />
+                            <p className="text-sm text-orange-700 font-medium">
+                              {eligibility.reason}
+                            </p>
+                          </div>
+                        )}
                     </div>
 
                     <div className="flex-shrink-0">
@@ -362,6 +465,10 @@ const StudentExamRegistrationPage = () => {
                       ) : isPastExam ? (
                         <span className="inline-flex items-center px-6 py-3 text-sm font-bold rounded-full bg-gray-300 text-gray-600 cursor-not-allowed">
                           Prošao rok
+                        </span>
+                      ) : !eligibility.eligible ? (
+                        <span className="inline-flex items-center px-6 py-3 text-sm font-bold rounded-full bg-orange-200 text-orange-800 cursor-not-allowed">
+                          Nije dostupno
                         </span>
                       ) : (
                         <button
@@ -398,10 +505,11 @@ const StudentExamRegistrationPage = () => {
           </div>
           <div className="ml-3">
             <p className="text-sm text-blue-700">
-              <strong className="font-bold">Napomena:</strong> Nakon prijave na
-              ispit, profesor će pregledati vašu prijavu i uneti rezultate.
-              Status prijave možete pratiti na ovoj stranici. Preporučujemo da
-              se prijavite najmanje 7 dana pre termina ispita.
+              <strong className="font-bold">Napomena:</strong> Možete prijaviti
+              samo ispite koji odgovaraju vašem smeru (
+              {student?.department || "nepoznat"}) i godini studija (
+              {student?.age_of_study || "nepoznata"}). Nakon prijave, profesor
+              će pregledati vašu prijavu i uneti rezultate.
             </p>
           </div>
         </div>

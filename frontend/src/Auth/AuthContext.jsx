@@ -171,18 +171,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const getStudent = async (studentId) => {
-    try {
-      const res = await axios.get(`${API_URL}/students/${studentId}`);
-      return { success: true, data: res.data };
-    } catch (err) {
-      return {
-        success: false,
-        error: err.response?.data?.detail || "Učitavanje studenta nije uspelo",
-      };
-    }
-  };
-
   const updateStudent = async (studentId, studentData) => {
     try {
       const res = await axios.put(
@@ -388,6 +376,7 @@ export const AuthProvider = ({ children }) => {
       const res = await axios.post(`${API_URL}/student/exam-registrations`, {
         exam_id: examId,
       });
+      console.log(res, "provera sta je res");
       return { success: true, data: res.data };
     } catch (err) {
       return {
@@ -431,7 +420,6 @@ export const AuthProvider = ({ children }) => {
     // Student CRUD
     createStudent,
     getStudents,
-    getStudent,
     updateStudent,
     deleteStudent,
 

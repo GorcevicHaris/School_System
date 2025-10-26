@@ -30,7 +30,7 @@ const Layout = ({ children }) => {
       {/* Sidebar */}
       <div className="w-64 bg-indigo-800 text-white flex flex-col">
         <div className="p-4 text-2xl font-bold border-b border-indigo-700">
-          {userRole === "professor" ? "🎓 Škola API" : "🎓 Student Portal"}
+          {userRole === "professor" ? "🎓 Škola " : "🎓 Student Portal"}
         </div>
 
         <nav className="flex-grow p-4">
