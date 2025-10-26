@@ -4,7 +4,7 @@ import Cookies from "js-cookie";
 
 export const AuthContext = createContext();
 
-const API_URL = "http://localhost:8000";
+const API_URL = "http://192.168.0.104:8000";
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(Cookies.get("token") || null);
