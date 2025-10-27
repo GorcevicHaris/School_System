@@ -1,9 +1,8 @@
-// SubjectsPage.jsx - Kopirajte ovaj kod u vaš projekat
-
 import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../Auth/AuthContext";
 import { FaBook, FaPlus, FaTag, FaTrashAlt } from "react-icons/fa";
 
+// Globalne konstante
 const DEPARTMENTS = [
   "Računarstvo",
   "Elektrotehnika",
@@ -14,6 +13,10 @@ const DEPARTMENTS = [
 
 const YEARS = [1, 2, 3, 4];
 
+// ==========================================================
+// Komponenta za modal (dodavanje predmeta)
+// ==========================================================
+
 const SubjectFormModal = ({ professorId, onClose, onSave }) => {
   const [formData, setFormData] = useState({
     name: "",
@@ -23,6 +26,11 @@ const SubjectFormModal = ({ professorId, onClose, onSave }) => {
     department: "",
   });
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    // Postavlja professor_id pri otvaranju, ako je potrebno
+    setFormData((prev) => ({ ...prev, professor_id: professorId }));
+  }, [professorId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -61,7 +69,7 @@ const SubjectFormModal = ({ professorId, onClose, onSave }) => {
         <h3 className="text-xl sm:text-2xl font-bold mb-4 text-gray-800">
           Kreiraj Novi Predmet
         </h3>
-        <div className="space-y-3 sm:space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Naziv Predmeta
@@ -152,18 +160,21 @@ const SubjectFormModal = ({ professorId, onClose, onSave }) => {
               Poništi
             </button>
             <button
-              type="button"
-              onClick={handleSubmit}
+              type="submit"
               className="px-4 py-2 text-sm sm:text-base bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition flex items-center justify-center"
             >
               <FaPlus className="mr-1" /> Kreiraj
             </button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );
 };
+
+// ==========================================================
+// Glavna SubjectsPage komponenta
+// ==========================================================
 
 const SubjectsPage = () => {
   const [subjects, setSubjects] = useState([]);
@@ -171,6 +182,7 @@ const SubjectsPage = () => {
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Pretpostavlja se da AuthContext sadrži trenutno ulogovanog profesora
   const { professor, getSubjects, createSubject, deleteSubject } =
     useContext(AuthContext);
 
@@ -210,6 +222,7 @@ const SubjectsPage = () => {
     }
   };
 
+  // Filtriranje predmeta
   const professorSubjects = subjects.filter(
     (sub) => sub.professor_id === professor?.id
   );
@@ -225,36 +238,39 @@ const SubjectsPage = () => {
     );
   if (error)
     return (
-      <div className="text-center py-10 text-red-600 text-sm sm:text-base">
+      <div className="text-center py-10 text-red-600 text-sm sm:text-base px-4">
         Greška: {error}
       </div>
     );
 
   return (
-    <div className="space-y-6 sm:space-y-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center">
-          <FaBook className="mr-2 sm:mr-3 text-indigo-600" /> Katalog Predmeta
+    // Glavni kontejner sada koristi w-full
+    <div className="w-full space-y-4 sm:space-y-6  sm:p-6 lg:p-8">
+      {/* HEADER SECTION */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center">
+          <FaBook className="mr-2 text-indigo-600" /> Katalog Predmeta
         </h2>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center px-4 sm:px-5 py-2 text-sm sm:text-base bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition duration-150 w-full sm:w-auto justify-center"
+          className="w-full sm:w-auto flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition duration-150 text-sm sm:text-base"
         >
           <FaPlus className="mr-2" /> Dodaj Novi Predmet
         </button>
       </div>
 
-      <div className="bg-white shadow-xl rounded-xl overflow-hidden">
-        <div className="p-3 sm:p-4 bg-indigo-50 border-b border-indigo-200">
-          <h3 className="font-semibold text-base sm:text-lg text-indigo-800">
+      {/* MOJI PREDMETI SEKCIJA */}
+      <div className="bg-white shadow-xl rounded-xl overflow-hidden border border-gray-200 w-full">
+        <div className="p-4 bg-gray-50 border-b">
+          <h3 className="font-semibold text-base sm:text-lg text-gray-800">
             Moji Predmeti ({professorSubjects.length})
           </h3>
         </div>
 
         {/* Desktop tabela */}
-        <div className="hidden md:block overflow-x-auto">
+        <div className="hidden lg:block overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-white">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Naziv
@@ -280,12 +296,12 @@ const SubjectsPage = () => {
                     key={subject.id}
                     className="hover:bg-indigo-50 transition"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-indigo-900 flex items-center">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 flex items-center">
                       <FaTag className="mr-2 text-indigo-400" /> {subject.name}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <span className="px-3 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-800">
-                        {subject.year}. godina
+                        {subject.year}. god
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
@@ -294,12 +310,14 @@ const SubjectsPage = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center font-bold">
-                      {subject.espb}
+                      <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700">
+                        {subject.espb}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center text-sm">
                       <button
                         onClick={() => handleDeleteSubject(subject.id)}
-                        className="text-red-500 hover:text-red-700 transition-colors p-2 rounded-full hover:bg-red-100"
+                        className="text-red-600 hover:text-red-900 transition-colors mx-2 p-1"
                         title="Izbriši predmet"
                       >
                         <FaTrashAlt />
@@ -317,71 +335,40 @@ const SubjectsPage = () => {
                   </td>
                 </tr>
               )}
-
-              {otherSubjects.length > 0 && (
-                <>
-                  <tr>
-                    <td
-                      colSpan="5"
-                      className="px-6 py-3 bg-gray-100 text-center text-xs font-medium text-gray-600 uppercase tracking-wider"
-                    >
-                      Drugi predmeti u sistemu ({otherSubjects.length})
-                    </td>
-                  </tr>
-                  {otherSubjects.slice(0, 5).map((subject) => (
-                    <tr key={subject.id} className="text-gray-400 italic">
-                      <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-600">
-                        {subject.name}
-                      </td>
-                      <td className="px-6 py-3 whitespace-nowrap text-center text-xs text-gray-500">
-                        {subject.year}. god.
-                      </td>
-                      <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                        {subject.department || "N/A"}
-                      </td>
-                      <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center">
-                        {subject.espb}
-                      </td>
-                      <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-400 text-center">
-                        -
-                      </td>
-                    </tr>
-                  ))}
-                </>
-              )}
             </tbody>
           </table>
         </div>
 
         {/* Mobilni prikaz - kartice */}
-        <div className="md:hidden divide-y divide-gray-200">
+        <div className="lg:hidden space-y-4 p-4">
           {professorSubjects.length > 0 ? (
             professorSubjects.map((subject) => (
               <div
                 key={subject.id}
-                className="p-4 hover:bg-indigo-50 transition"
+                className="bg-white shadow-lg rounded-xl p-4 space-y-3 border border-gray-200 hover:shadow-xl transition"
               >
-                <div className="flex justify-between items-start mb-3">
+                <div className="flex justify-between items-start">
                   <div className="flex-1 pr-2">
-                    <h4 className="font-bold text-indigo-900 text-base flex items-center mb-2">
-                      <FaTag className="mr-2 text-indigo-400 flex-shrink-0" />
+                    <h4 className="font-bold text-gray-900 text-base flex items-start mb-2">
+                      <FaTag className="mr-2 text-indigo-400 flex-shrink-0 mt-1" />
                       <span className="break-words">{subject.name}</span>
                     </h4>
                     <div className="flex flex-wrap gap-2 text-xs">
-                      <span className="px-2 py-1 rounded-full bg-blue-100 text-blue-800 font-bold">
-                        {subject.year}. godina
+                      <span className="px-3 py-1 font-bold rounded-full bg-blue-100 text-blue-800">
+                        🎓 {subject.year}. god
                       </span>
-                      <span className="px-2 py-1 rounded-full bg-purple-100 text-purple-800 font-semibold">
-                        {subject.department || "N/A"}
+                      <span className="px-3 py-1 font-semibold rounded-full bg-purple-100 text-purple-800">
+                        🏢 {subject.department || "N/A"}
                       </span>
-                      <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-700 font-bold">
+                      <span className="px-3 py-1 font-bold rounded-full bg-gray-100 text-gray-700">
                         {subject.espb} ESPB
                       </span>
                     </div>
                   </div>
                   <button
                     onClick={() => handleDeleteSubject(subject.id)}
-                    className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100 flex-shrink-0"
+                    className="text-red-600 hover:text-red-900 p-2 transition flex-shrink-0"
+                    title="Obriši"
                   >
                     <FaTrashAlt size={18} />
                   </button>
@@ -389,36 +376,71 @@ const SubjectsPage = () => {
               </div>
             ))
           ) : (
-            <div className="p-6 text-center text-gray-500 italic text-sm">
+            <div className="p-4 text-center text-gray-500 italic text-sm">
               Još niste kreirali nijedan predmet.
             </div>
           )}
-
-          {otherSubjects.length > 0 && (
-            <>
-              <div className="p-3 bg-gray-100 text-center text-xs font-medium text-gray-600 uppercase">
-                Drugi predmeti ({otherSubjects.length})
-              </div>
-              {otherSubjects.slice(0, 3).map((subject) => (
-                <div key={subject.id} className="p-4 text-gray-400 italic">
-                  <p className="text-sm text-gray-600 font-medium mb-1">
-                    {subject.name}
-                  </p>
-                  <div className="flex flex-wrap gap-2 text-xs">
-                    <span className="text-gray-500">{subject.year}. god.</span>
-                    <span className="text-gray-500">•</span>
-                    <span className="text-gray-500">
-                      {subject.department || "N/A"}
-                    </span>
-                    <span className="text-gray-500">•</span>
-                    <span className="text-gray-500">{subject.espb} ESPB</span>
-                  </div>
-                </div>
-              ))}
-            </>
-          )}
         </div>
       </div>
+
+      {/* DRUGI PREDMETI SEKCIJA */}
+      {otherSubjects.length > 0 && (
+        <div className="bg-white shadow-xl rounded-xl overflow-hidden border border-gray-200 w-full mt-6">
+          <div className="p-4 bg-gray-50 border-b">
+            <h3 className="font-semibold text-base sm:text-lg text-gray-800">
+              Drugi predmeti u sistemu ({otherSubjects.length})
+            </h3>
+            <p className="text-xs text-gray-500 mt-1">
+              Prikazano je {Math.min(otherSubjects.length, 5)} predmeta.
+            </p>
+          </div>
+
+          {/* Desktop tabela za druge predmete */}
+          <div className="hidden lg:block overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-gray-200">
+                {otherSubjects.slice(0, 5).map((subject) => (
+                  <tr key={subject.id} className="hover:bg-gray-50 transition">
+                    <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-700">
+                      {subject.name}
+                    </td>
+                    <td className="px-6 py-3 whitespace-nowrap text-center text-xs text-gray-500">
+                      {subject.year}. god.
+                    </td>
+                    <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
+                      {subject.department || "N/A"}
+                    </td>
+                    <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center">
+                      {subject.espb} ESPB
+                    </td>
+                    <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-400 text-center">
+                      -
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobilni kartični prikaz za druge predmete */}
+          <div className="lg:hidden divide-y divide-gray-200">
+            {otherSubjects.slice(0, 3).map((subject) => (
+              <div key={subject.id} className="p-4 hover:bg-gray-50 transition">
+                <p className="text-sm text-gray-700 font-medium mb-1">
+                  {subject.name}
+                </p>
+                <div className="flex flex-wrap gap-2 text-xs text-gray-500">
+                  <span className="font-medium">{subject.year}. god.</span>
+                  <span>•</span>
+                  <span>{subject.department || "N/A"}</span>
+                  <span>•</span>
+                  <span className="font-bold">{subject.espb} ESPB</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {isModalOpen && (
         <SubjectFormModal
