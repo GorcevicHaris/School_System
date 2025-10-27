@@ -19,7 +19,7 @@ const StudentFormModal = ({ studentToEdit, onClose, onSave }) => {
     email: "",
     index_number: "",
     age_of_study: 1,
-    department: "", // ⭐ NOVO
+    department: "",
   });
   const [error, setError] = useState("");
 
@@ -31,7 +31,7 @@ const StudentFormModal = ({ studentToEdit, onClose, onSave }) => {
         email: studentToEdit.email,
         index_number: studentToEdit.index_number,
         age_of_study: studentToEdit.age_of_study,
-        department: studentToEdit.department || "", // ⭐ NOVO
+        department: studentToEdit.department || "",
       });
     }
   }, [studentToEdit]);
@@ -42,7 +42,7 @@ const StudentFormModal = ({ studentToEdit, onClose, onSave }) => {
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     setError("");
 
     // Provera da li je age_of_study broj
@@ -51,7 +51,6 @@ const StudentFormModal = ({ studentToEdit, onClose, onSave }) => {
       return;
     }
 
-    // ⭐ NOVO - Provera departmana
     if (!formData.department) {
       setError("Morate odabrati departman.");
       return;
@@ -67,14 +66,14 @@ const StudentFormModal = ({ studentToEdit, onClose, onSave }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-75 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
-      <div className="relative mx-auto p-6 border w-full max-w-md shadow-2xl rounded-xl bg-white">
-        <h3 className="text-2xl font-bold mb-4 text-gray-800">
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-75 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+      <div className="relative mx-auto p-4 sm:p-6 border w-full max-w-md shadow-2xl rounded-xl bg-white">
+        <h3 className="text-xl sm:text-2xl font-bold mb-4 text-gray-800">
           {studentToEdit ? "Ažuriraj Studenta" : "Dodaj Novog Studenta"}
         </h3>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
               Ime i Prezime
             </label>
             <input
@@ -84,12 +83,12 @@ const StudentFormModal = ({ studentToEdit, onClose, onSave }) => {
               value={formData.name}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
               Korisničko Ime
             </label>
             <input
@@ -99,12 +98,12 @@ const StudentFormModal = ({ studentToEdit, onClose, onSave }) => {
               value={formData.username}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
               Email
             </label>
             <input
@@ -114,12 +113,12 @@ const StudentFormModal = ({ studentToEdit, onClose, onSave }) => {
               value={formData.email}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
               Broj Indeksa
             </label>
             <input
@@ -129,13 +128,12 @@ const StudentFormModal = ({ studentToEdit, onClose, onSave }) => {
               value={formData.index_number}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
 
-          {/* ⭐ NOVO - Departman select */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
               Departman / Smer
             </label>
             <select
@@ -143,7 +141,7 @@ const StudentFormModal = ({ studentToEdit, onClose, onSave }) => {
               value={formData.department}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
             >
               <option value="">-- Odaberite Departman --</option>
               {DEPARTMENTS.map((dept) => (
@@ -155,7 +153,7 @@ const StudentFormModal = ({ studentToEdit, onClose, onSave }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
               Godina Studija
             </label>
             <select
@@ -163,7 +161,7 @@ const StudentFormModal = ({ studentToEdit, onClose, onSave }) => {
               value={formData.age_of_study}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
             >
               {[1, 2, 3, 4].map((year) => (
                 <option key={year} value={year}>
@@ -173,24 +171,26 @@ const StudentFormModal = ({ studentToEdit, onClose, onSave }) => {
             </select>
           </div>
 
-          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+          {error && (
+            <p className="text-red-500 text-xs sm:text-sm mt-2">{error}</p>
+          )}
 
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
+              className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition text-sm sm:text-base"
             >
               Poništi
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-md"
+              className="w-full sm:w-auto px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-md text-sm sm:text-base"
             >
               Sačuvaj
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
@@ -262,25 +262,34 @@ const StudentsPage = () => {
   };
 
   if (loading)
-    return <div className="text-center py-10">Učitavanje studenata...</div>;
+    return (
+      <div className="text-center py-10 text-sm sm:text-base">
+        Učitavanje studenata...
+      </div>
+    );
   if (error)
     return (
-      <div className="text-center py-10 text-red-600">Greška: {error}</div>
+      <div className="text-center py-10 text-red-600 text-sm sm:text-base px-4">
+        Greška: {error}
+      </div>
     );
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-800">Pregled Studenata</h2>
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-6 lg:p-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
+          Pregled Studenata
+        </h2>
         <button
           onClick={handleOpenCreateModal}
-          className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition duration-150"
+          className="w-full sm:w-auto flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition duration-150 text-sm sm:text-base"
         >
           <FaUserPlus className="mr-2" /> Dodaj Studenta
         </button>
       </div>
 
-      <div className="bg-white shadow-xl rounded-xl overflow-hidden">
+      {/* Desktop Table View - Hidden on mobile */}
+      <div className="hidden lg:block bg-white shadow-xl rounded-xl overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -296,7 +305,6 @@ const StudentsPage = () => {
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Godina
               </th>
-              {/* ⭐ NOVA KOLONA */}
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Departman
               </th>
@@ -323,7 +331,6 @@ const StudentsPage = () => {
                       {student.age_of_study}. god
                     </span>
                   </td>
-                  {/* ⭐ NOVA KOLONA - Prikaz departmana */}
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     <span className="px-3 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
                       {student.department || "Nije definisan"}
@@ -359,6 +366,63 @@ const StudentsPage = () => {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Card View - Visible only on mobile/tablet */}
+      <div className="lg:hidden space-y-4">
+        {students.length > 0 ? (
+          students.map((student) => (
+            <div
+              key={student.id}
+              className="bg-white shadow-lg rounded-xl p-4 space-y-3 border border-gray-200 hover:shadow-xl transition"
+            >
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-gray-900 break-words">
+                    {student.name}
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1 break-all">
+                    {student.email}
+                  </p>
+                </div>
+                <div className="flex space-x-2 ml-2">
+                  <button
+                    onClick={() => handleOpenEditModal(student)}
+                    className="text-indigo-600 hover:text-indigo-900 p-2 transition"
+                    title="Ažuriraj"
+                  >
+                    <FaEdit size={18} />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteStudent(student.id)}
+                    className="text-red-600 hover:text-red-900 p-2 transition"
+                    title="Obriši"
+                  >
+                    <FaTrashAlt size={18} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <span className="px-3 py-1 text-xs font-bold rounded-full bg-gray-100 text-gray-700">
+                  📋 {student.index_number}
+                </span>
+                <span className="px-3 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-800">
+                  🎓 {student.age_of_study}. god
+                </span>
+                <span className="px-3 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                  🏢 {student.department || "Nije definisan"}
+                </span>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="bg-white shadow-lg rounded-xl p-8 text-center">
+            <p className="text-gray-500 italic">
+              Nema registrovanih studenata.
+            </p>
+          </div>
+        )}
       </div>
 
       {isModalOpen && (

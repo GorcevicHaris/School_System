@@ -19,6 +19,7 @@ import ExamRegistrationsPage from "./pages/ExamRegistrationsPage";
 
 // Student komponenta
 import StudentExamRegistrationPage from "./pages/StudentExamRegistrationPage";
+import StudentDashboard from "./pages/StudentDashboard";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRole }) => {
@@ -136,6 +137,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute allowedRole="student">
             <StudentExamRegistrationPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/profile"
+        element={
+          <ProtectedRoute allowedRole="student">
+            <StudentDashboard />
           </ProtectedRoute>
         }
       />
