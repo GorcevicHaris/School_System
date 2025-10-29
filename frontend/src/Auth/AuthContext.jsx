@@ -259,7 +259,7 @@ export const AuthProvider = ({ children }) => {
       };
     }
   };
-
+  //
   const getExams = async () => {
     try {
       const endpoint =
