@@ -39,7 +39,7 @@ const ExamRegistrationsPage = () => {
   const [selectedExamId, setSelectedExamId] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const [selectedStatus, setSelectedStatus] = useState("");
   const {
     getExamRegistrations,
     getExams,
@@ -80,7 +80,9 @@ const ExamRegistrationsPage = () => {
   const mappedRegistrations = registrations
     .filter(
       (reg) => !selectedExamId || reg.exam_id === parseInt(selectedExamId)
+      //znaci bukvalno vrati mi sve ispite koje nisam odabrao ili vrati mi ispit koji sam odabrao koji je jednak examid
     )
+    .filter((reg) => !selectedStatus || reg.status == selectedStatus)
     .map((reg) => {
       const student = students.find((s) => s.id === reg.student_id);
       const exam = exams.find((e) => e.id === reg.exam_id);
@@ -190,9 +192,56 @@ const ExamRegistrationsPage = () => {
                 );
               })}
             </select>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <label className="flex items-center gap-2 font-semibold text-gray-700 text-sm sm:text-base min-w-[180px]">
+                <FaFilter className="text-indigo-600" />
+                Filtriraj po Statusu:
+              </label>
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="flex-1 sm:min-w-[300px] p-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
+              >
+                <option value="">-- Svi Statusi --</option>
+                <option value="prijavljen">📝 Prijavljen</option>
+                <option value="polozio">✅ Položio</option>
+                <option value="pao">❌ Pao</option>
+              </select>
+            </div>
           </div>
         </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-blue-500">
+            <p className="text-sm text-gray-600 font-medium">Ukupno prijava</p>
+            <p className="text-3xl font-bold text-gray-900">
+              {mappedRegistrations.length}
+            </p>
+          </div>
 
+          <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-yellow-500">
+            <p className="text-sm text-gray-600 font-medium">📝 Prijavljeni</p>
+            <p className="text-3xl font-bold text-yellow-600">
+              {
+                mappedRegistrations.filter((r) => r.status === "prijavljen")
+                  .length
+              }
+            </p>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-green-500">
+            <p className="text-sm text-gray-600 font-medium">✅ Položili</p>
+            <p className="text-3xl font-bold text-green-600">
+              {mappedRegistrations.filter((r) => r.status === "polozio").length}
+            </p>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-red-500">
+            <p className="text-sm text-gray-600 font-medium">❌ Pali</p>
+            <p className="text-3xl font-bold text-red-600">
+              {mappedRegistrations.filter((r) => r.status === "pao").length}
+            </p>
+          </div>
+        </div>
         {/* Desktop Table View */}
         <div className="hidden lg:block bg-white shadow-xl rounded-xl overflow-hidden">
           <div className="overflow-x-auto">

@@ -4,7 +4,7 @@ import Cookies from "js-cookie";
 
 export const AuthContext = createContext();
 
-const API_URL = "http://192.168.0.104:8000";
+const API_URL = "http://192.168.0.105:8000";
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(Cookies.get("token") || null);
@@ -57,7 +57,9 @@ export const AuthProvider = ({ children }) => {
       }
 
       const endpoint =
-        userRole === "professor" ? `${API_URL}/me` : `${API_URL}/students/me`;
+        userRole === "professor"
+          ? `${API_URL}/professors/me`
+          : `${API_URL}/students/me`;
 
       try {
         const res = await axios.get(endpoint);
@@ -218,7 +220,7 @@ export const AuthProvider = ({ children }) => {
       // Dinamički odaberi endpoint na osnovu uloge
       const endpoint =
         userRole === "student"
-          ? `${API_URL}/student/subjects`
+          ? `${API_URL}/subjects/student`
           : `${API_URL}/subjects`;
 
       const res = await axios.get(endpoint);
@@ -233,7 +235,7 @@ export const AuthProvider = ({ children }) => {
 
   const deleteSubject = async (subject_Id) => {
     try {
-      await axios.delete(`${API_URL}/delete/subject/${subject_Id}`);
+      await axios.delete(`${API_URL}/subjects/delete/${subject_Id}`);
       return { success: true };
     } catch (err) {
       return {
@@ -262,7 +264,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const endpoint =
         userRole === "student"
-          ? `${API_URL}/student/exams`
+          ? `${API_URL}/exams/student`
           : `${API_URL}/exams`;
 
       const res = await axios.get(endpoint);
@@ -310,7 +312,7 @@ export const AuthProvider = ({ children }) => {
       // Dinamički odaberi endpoint na osnovu uloge
       const endpoint =
         userRole === "student"
-          ? `${API_URL}/student/exam-registrations`
+          ? `${API_URL}/exam-registrations/student`
           : `${API_URL}/exam-registrations`;
 
       const res = await axios.get(endpoint);
@@ -326,7 +328,7 @@ export const AuthProvider = ({ children }) => {
   // ⭐ NOVA FUNKCIJA - Specifična za studente (alias)
   const getStudentRegistrations = async () => {
     try {
-      const res = await axios.get(`${API_URL}/student/exam-registrations`);
+      const res = await axios.get(`${API_URL}/exam-registrations/student`);
       return { success: true, data: res.data };
     } catch (err) {
       return {
@@ -373,7 +375,7 @@ export const AuthProvider = ({ children }) => {
   const studentCreateExamRegistration = async (examId) => {
     try {
       // Koristi novi endpoint specifičan za studente
-      const res = await axios.post(`${API_URL}/student/exam-registrations`, {
+      const res = await axios.post(`${API_URL}/exam-registrations/student`, {
         exam_id: examId,
       });
       console.log(res, "provera sta je res");
@@ -388,7 +390,7 @@ export const AuthProvider = ({ children }) => {
 
   const deleteExam = async (examId) => {
     try {
-      await axios.delete(`${API_URL}/delete/exam/${examId}`);
+      await axios.delete(`${API_URL}/exams/delete/${examId}`);
       return { success: true };
     } catch (err) {
       return {
