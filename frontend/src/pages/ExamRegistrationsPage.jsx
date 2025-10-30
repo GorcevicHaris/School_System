@@ -9,7 +9,6 @@ import {
 } from "react-icons/fa";
 
 // Opcije za grade i status (prema Vašem FastAPI Enum-u)
-const gradeOptions = ["/", 5, 6, 7, 8, 9, 10];
 const statusOptions = {
   prijavljen: {
     label: "Prijavljen",
@@ -155,6 +154,38 @@ const ExamRegistrationsPage = () => {
       </div>
     );
   }
+
+  const handlePointChange = (reg, value) => {
+    // Filtriraj sve prijave ovog studenta za ISTI PREDMET
+    const studentIdRegistration = registrations
+      .filter((r) => {
+        return r.student_id === reg.student_id;
+      })
+      .sort((a, b) => b.num_of_applications - a.num_of_applications); // Sortiraj po broju aplikacija
+
+    const latestReg = studentIdRegistration[0];
+
+    console.log(
+      "Sve prijave za ovog studenta na ovom PREDMETU:",
+      studentIdRegistration
+    );
+
+    if (reg.num_of_applications !== latestReg.num_of_applications) {
+      alert(
+        "Ne možete menjati prethodnu prijavu. Možete editovati samo poslednju prijavu."
+      );
+      return false;
+    }
+
+    const newGrade = calculateGrade(value);
+    const newStatus = newGrade === 5 ? "pao" : "polozio";
+
+    handleUpdate(reg.id, "points", value);
+    handleUpdate(reg.id, "grade", newGrade);
+    handleUpdate(reg.id, "status", newStatus);
+
+    return true;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
@@ -306,10 +337,12 @@ const ExamRegistrationsPage = () => {
 
                               if (val === "") {
                                 handleUpdate(reg.id, "points", null);
+                                handleUpdate(reg.id, "grade", "/");
+                                // Ažuriraj UI odmah
                                 setRegistrations((prev) =>
                                   prev.map((r) =>
                                     r.id === reg.id
-                                      ? { ...r, points: "", grade: "/" }
+                                      ? { ...r, points: null, grade: "/" }
                                       : r
                                   )
                                 );
@@ -321,28 +354,9 @@ const ExamRegistrationsPage = () => {
                               if (value > 100) value = 100;
                               if (value < 0) value = 0;
 
-                              const newGrade = calculateGrade(value);
-                              const newStatus =
-                                newGrade === 5 ? "pao" : "polozio";
-
-                              handleUpdate(reg.id, "points", value);
-                              handleUpdate(reg.id, "grade", newGrade);
-                              handleUpdate(reg.id, "status", newStatus);
-
-                              setRegistrations((prev) =>
-                                prev.map((r) =>
-                                  r.id === reg.id
-                                    ? {
-                                        ...r,
-                                        points: value,
-                                        grade: newGrade,
-                                        status: newStatus,
-                                      }
-                                    : r
-                                )
-                              );
+                              handlePointChange(reg, value);
                             }}
-                            className="w-20 p-2 text-center border-2 rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold"
+                            ame="w-20 p-2 text-center border-2 rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold"
                           />
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -450,10 +464,12 @@ const ExamRegistrationsPage = () => {
 
                             if (val === "") {
                               handleUpdate(reg.id, "points", null);
+                              handleUpdate(reg.id, "grade", "/");
+                              // Ažuriraj UI odmah
                               setRegistrations((prev) =>
                                 prev.map((r) =>
                                   r.id === reg.id
-                                    ? { ...r, points: "", grade: "/" }
+                                    ? { ...r, points: null, grade: "/" }
                                     : r
                                 )
                               );
@@ -465,26 +481,7 @@ const ExamRegistrationsPage = () => {
                             if (value > 100) value = 100;
                             if (value < 0) value = 0;
 
-                            const newGrade = calculateGrade(value);
-                            const newStatus =
-                              newGrade === 5 ? "pao" : "polozio";
-
-                            handleUpdate(reg.id, "points", value);
-                            handleUpdate(reg.id, "grade", newGrade);
-                            handleUpdate(reg.id, "status", newStatus);
-
-                            setRegistrations((prev) =>
-                              prev.map((r) =>
-                                r.id === reg.id
-                                  ? {
-                                      ...r,
-                                      points: value,
-                                      grade: newGrade,
-                                      status: newStatus,
-                                    }
-                                  : r
-                              )
-                            );
+                            handlePointChange(reg, value);
                           }}
                           className="w-full p-2.5 text-center border-2 rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-semibold"
                         />
