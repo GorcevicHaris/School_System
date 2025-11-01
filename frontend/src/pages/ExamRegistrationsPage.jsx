@@ -157,17 +157,24 @@ const ExamRegistrationsPage = () => {
 
   const handlePointChange = (reg, value) => {
     // Filtriraj sve prijave ovog studenta za ISTI PREDMET
-    const studentIdRegistration = registrations
+    const currentExam = exams.find((el) => el.id == reg.exam_id);
+    //znaci vrati mi sve examsove koji imaju isti kao oni koji se prijavljuju
+    if (!currentExam) return false; // Ako ne nađe ispit, zaustavi se
+    const studentSubjectRegistration = registrations
       .filter((r) => {
-        return r.student_id === reg.student_id;
+        const exam = exams.find((e) => e.id === r.exam_id);
+        return (
+          r.student_id === reg.student_id &&
+          exam.subject_id === currentExam.subject_id
+        );
       })
       .sort((a, b) => b.num_of_applications - a.num_of_applications); // Sortiraj po broju aplikacija
 
-    const latestReg = studentIdRegistration[0];
+    const latestReg = studentSubjectRegistration[0];
 
     console.log(
       "Sve prijave za ovog studenta na ovom PREDMETU:",
-      studentIdRegistration
+      studentSubjectRegistration
     );
 
     if (reg.num_of_applications !== latestReg.num_of_applications) {

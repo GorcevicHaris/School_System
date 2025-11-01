@@ -9,6 +9,7 @@ const professorNavItems = [
   { name: "Predmeti", path: "/subjects" },
   { name: "Ispiti", path: "/exams" },
   { name: "Prijave ispita", path: "/registrations" },
+  { name: "Ocene Studenata", path: "/grades" },
 ];
 
 // Navigacija za studente
