@@ -20,7 +20,12 @@ import ExamRegistrationsPage from "./pages/ExamRegistrationsPage";
 // Student komponenta
 import StudentExamRegistrationPage from "./pages/StudentExamRegistrationPage";
 import StudentDashboard from "./pages/StudentDashboard";
-
+console.log("🔗 REACT_APP_API_URL:", process.env.REACT_APP_API_URL);
+console.log(
+  "🌐 Final API_URL:",
+  process.env.REACT_APP_API_URL || "http://localhost:8000"
+);
+console.log("nova verzija");
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRole }) => {
   const { token, userRole, loading } = useContext(AuthContext);
