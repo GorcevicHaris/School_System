@@ -30,12 +30,18 @@ def get_all_subjects(
 ):
     """Lista svih predmeta (samo profesori)"""
     subjects = db.query(Subject).all()
+    
+    print(f"🔍 PROFESOR ID: {current_professor.id}")
+    print(f"📚 PRONAĐENO PREDMETA: {len(subjects)}")
+    for subject in subjects:
+        print(f"   - {subject.name} (ID: {subject.id}, Profesor: {subject.professor_id})")
+    
     return subjects
-
 @router.get("/student", response_model=list[SubjectResponse])
 def get_all_subjects_student(
     db: Session = Depends(get_db), 
-    current_student: Student = Depends(get_current_student)
+    current_student: Student = Depends(get_current_student),
+
 ):
     """Lista predmeta relevantnih za studenta (filtrirano po departmanu i godini)"""
     query = db.query(Subject)

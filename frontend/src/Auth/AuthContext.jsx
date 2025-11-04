@@ -104,6 +104,7 @@ export const AuthProvider = ({ children }) => {
       console.log(API_URL, "apiii");
       const res = await axios.post(`${API_URL}/login`, { username, password });
       setAuthCookies(res.data);
+      console.log(res.data, "adsasd");
       return { success: true, role: "professor" };
     } catch (err) {
       return {
@@ -268,6 +269,7 @@ export const AuthProvider = ({ children }) => {
           : `${API_URL}/exams`;
 
       const res = await axios.get(endpoint);
+      console.log(res, "proba");
       return { success: true, data: res.data };
     } catch (err) {
       return {

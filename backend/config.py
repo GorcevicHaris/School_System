@@ -23,7 +23,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 # Server konfiguracija
 PORT = int(os.getenv("PORT", 8000))
 HOST = os.getenv("HOST", "0.0.0.0")
-
+print(f"🔗 Database URL: {DATABASE_URL}")
 # CORS konfiguracija
 CORS_ORIGINS = [
     "http://localhost:3000",
