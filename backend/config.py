@@ -32,6 +32,7 @@ CORS_ORIGINS = [
     "http://127.0.0.1:5173",
     "https://univerzitetsistem-hqv3gbz69-haris-projects-bb843b88.vercel.app",
     "https://univerzitet-sistem.vercel.app"  # ako imaš i custom domain
+    "https://univerzitetsistem-gvl3n2zt2-haris-projects-bb843b88.vercel.app"
 ]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = ["*"]
