@@ -4,12 +4,7 @@ import Cookies from "js-cookie";
 
 export const AuthContext = createContext();
 
-// Umesto ovoga:
-
-// Koristi ovo:
-const API_URL = (
-  process.env.REACT_APP_API_URL || "http://localhost:8000"
-).replace(/\/$/, "");
+const API_URL = process.env.REACT_APP_API_URL || "http://192.168.0.105:8000";
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(Cookies.get("token") || null);
   const [userId, setUserId] = useState(Cookies.get("user_id") || null);
@@ -106,6 +101,7 @@ export const AuthProvider = ({ children }) => {
 
   const professorLogin = async (username, password) => {
     try {
+      console.log(API_URL, "apiii");
       const res = await axios.post(`${API_URL}/login`, { username, password });
       setAuthCookies(res.data);
       return { success: true, role: "professor" };
