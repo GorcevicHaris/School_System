@@ -30,9 +30,7 @@ CORS_ORIGINS = [
     "http://localhost:5173", 
     "http://127.0.0.1:3000",
     "http://127.0.0.1:5173",
-    "https://univerzitetsistem-hqv3gbz69-haris-projects-bb843b88.vercel.app",
-    "https://univerzitet-sistem.vercel.app"  # ako imaš i custom domain
-    "https://univerzitetsistem-gvl3n2zt2-haris-projects-bb843b88.vercel.app"
+    "https://school-system-roan.vercel.app",  # ДОДАЈ ОВО - твој нови URL!
 ]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = ["*"]
