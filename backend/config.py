@@ -26,11 +26,12 @@ HOST = os.getenv("HOST", "0.0.0.0")
 
 # CORS konfiguracija
 CORS_ORIGINS = [
-    "http://localhost:3000",  # React dev server
-    "http://localhost:5173",  # Vite dev server
+    "http://localhost:3000",
+    "http://localhost:5173", 
     "http://127.0.0.1:3000",
     "http://127.0.0.1:5173",
-    "*"  # Za development - ukloni za production!
+    "https://univerzitetsistem-hqv3gbz69-haris-projects-bb843b88.vercel.app",
+    "https://univerzitet-sistem.vercel.app"  # ako imaš i custom domain
 ]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = ["*"]

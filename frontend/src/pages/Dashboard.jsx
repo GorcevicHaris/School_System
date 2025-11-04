@@ -3,7 +3,7 @@ import { AuthContext } from "../Auth/AuthContext";
 import ExamPage from "../pages/ExamsPage";
 const Dashboard = () => {
   const { professor } = useContext(AuthContext);
-
+  console.log("API URL:", process.env.REACT_APP_API_URL);
   if (!professor) return <div>Učitavanje...</div>;
 
   return (
