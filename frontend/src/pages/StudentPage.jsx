@@ -184,6 +184,7 @@ const StudentFormModal = ({ studentToEdit, onClose, onSave }) => {
               Poništi
             </button>
             <button
+              onClick={handleSubmit}
               type="submit"
               className="w-full sm:w-auto px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-md text-sm sm:text-base"
             >
@@ -233,7 +234,6 @@ const StudentsPage = () => {
     setStudentToEdit(student);
     setIsModalOpen(true);
   };
-
   const handleSaveStudent = async (id, studentData) => {
     let result;
     if (id) {
@@ -245,6 +245,7 @@ const StudentsPage = () => {
     if (result.success) {
       fetchStudents(); // Osveži listu
     }
+    console.log(result, "rezultat");
     return result;
   };
 
