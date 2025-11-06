@@ -35,6 +35,7 @@ def get_student_grades(
             detail=f"Greška pri učitavanju ocena: {str(e)}"
         )
 
+
 @router.post("", response_model=StudentResponse, status_code=status.HTTP_201_CREATED)
 def create_student(
     student: StudentCreate, 
