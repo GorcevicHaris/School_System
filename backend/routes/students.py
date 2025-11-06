@@ -18,6 +18,23 @@ def get_student_me(current_student: Student = Depends(get_current_student)):
     """Dobijanje podataka o trenutno ulogovanom studentu"""
     return current_student
 
+@router.get("/grades", response_model=List[StudentGradeResponse])
+def get_student_grades(
+    db: Session = Depends(get_db),
+    current_student = Depends(get_current_student)
+):
+    """
+    Endpoint za dobijanje svih ocena trenutno ulogovanog studenta
+    """
+    try:
+        grades = get_student_grades_service(db, current_student.id)
+        return grades
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Greška pri učitavanju ocena: {str(e)}"
+        )
+
 @router.post("", response_model=StudentResponse, status_code=status.HTTP_201_CREATED)
 def create_student(
     student: StudentCreate, 
@@ -95,23 +112,4 @@ def delete_student(
     return None
 
 
-@router.get("/grades", response_model=List[StudentGradeResponse])
-def get_student_grades(
-    db: Session = Depends(get_db),
-    current_student = Depends(get_current_student)
-):
-    """
-    Endpoint za dobijanje svih ocena trenutno ulogovanog studenta
-    
-    - Vraća sve ocene sa informacijama o predmetu, ispitu i profesoru
-    - Sortira po datumu (najnovije prvo)
-    - Vraća samo prijave koje imaju unetu ocenu
-    """
-    try:
-        grades = get_student_grades_service(db, current_student.id)
-        return grades
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Greška pri učitavanju ocena: {str(e)}"
-        )
+
