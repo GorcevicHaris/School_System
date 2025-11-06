@@ -1,8 +1,10 @@
+# models/academic.py
+"""
+Academic modeli: Subject, Exam, ExamRegistration
+"""
 from sqlalchemy import Column, Integer, String, Date, Enum, ForeignKey
-from sqlalchemy.orm import relationship  # ← DODAJ IMPORT!
 from database import Base
 from models.enums import ExamType, ExamStatus
-
 
 class Subject(Base):
     __tablename__ = "Subjects"
@@ -11,13 +13,8 @@ class Subject(Base):
     name = Column(String(100), nullable=False)
     espb = Column(Integer, nullable=False)
     professor_id = Column(Integer, ForeignKey("professors.id"), nullable=False)
-    year = Column(Integer, nullable=True)
-    department = Column(String(50), nullable=True)
-    
-    # ✅ RELATIONSHIPS:
-    professor = relationship("Professor", back_populates="subjects")
-    exams = relationship("Exam", back_populates="subject")
-
+    year = Column(Integer, nullable=True)  # godina studija (1-4)
+    department = Column(String(50), nullable=True)  # smer/departman
 
 class Exam(Base):
     __tablename__ = "Exams"
@@ -26,11 +23,6 @@ class Exam(Base):
     subject_id = Column(Integer, ForeignKey("Subjects.id"), nullable=False)
     date = Column(Date, nullable=False)
     type = Column(Enum(ExamType), nullable=False)
-    
-    # ✅ RELATIONSHIPS:
-    subject = relationship("Subject", back_populates="exams")
-    registrations = relationship("ExamRegistration", back_populates="exam")
-
 
 class ExamRegistration(Base):
     __tablename__ = "Exams_Registrations"
@@ -42,7 +34,3 @@ class ExamRegistration(Base):
     grade = Column(Integer, default=0)
     points = Column(Integer, default=0)
     status = Column(Enum(ExamStatus), default=ExamStatus.prijavljen)
-    
-    # ✅ RELATIONSHIPS:
-    student = relationship("Student", back_populates="exam_registrations")
-    exam = relationship("Exam", back_populates="registrations")
