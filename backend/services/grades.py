@@ -17,7 +17,7 @@ def get_student_grades_service(db: Session, student_id: int):
             .filter(
                 and_(
                     ExamRegistration.student_id == student_id,
-                    ExamRegistration.grade > 5  # ← Samo položeni (6-10)
+                    ExamRegistration.grade  # ← Samo položeni (6-10)
                 )
             )
             .options(
