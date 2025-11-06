@@ -132,10 +132,14 @@ const StudentDashboard = () => {
             <span className="mr-2">🏆</span>
             Rezultati
           </h2>
-          href="/student/results" className="text-indigo-600
+          <a
+            href="/student/results"
+            className="text-indigo-600
           hover:text-indigo-800 font-medium text-sm sm:text-base
           transition-colors"
-          <a>Vidi sve →</a>
+          >
+            Vidi sve →
+          </a>
         </div>
         <p className="text-gray-600 text-sm sm:text-base mb-4">
           Pregledajte svoje ocene i bodove sa položenih i pao ispita.
