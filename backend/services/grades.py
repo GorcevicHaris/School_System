@@ -9,7 +9,7 @@ def get_student_grades_service(db: Session, student_id: int):
         .join(Professor, Subject.professor_id == Professor.id)
         .filter(
             ExamRegistration.student_id == student_id,
-            ExamRegistration.grade > 5
+            ExamRegistration.grade 
         )
         .options(
             joinedload(ExamRegistration.exam)
