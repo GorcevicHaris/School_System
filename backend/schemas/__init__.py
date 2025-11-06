@@ -3,7 +3,7 @@
 Export svih šema
 """
 from schemas.auth import LoginData, StudentLoginData, Token, ProfessorRegister
-from schemas.user import StudentCreate, StudentResponse, ProfessorResponse
+from schemas.user import StudentCreate, StudentResponse, ProfessorResponse,StudentGradeResponse
 from schemas.academic import (
     SubjectCreate, SubjectResponse,
     ExamCreate, ExamResponse,
@@ -21,6 +21,7 @@ __all__ = [
     "StudentCreate",
     "StudentResponse",
     "ProfessorResponse",
+    "StudentGradeResponse",
     # Academic
     "SubjectCreate",
     "SubjectResponse",
