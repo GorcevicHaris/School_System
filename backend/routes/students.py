@@ -7,6 +7,9 @@ from sqlalchemy.orm import Session
 from dependencies import get_db, get_current_professor, get_current_student
 from models import Student, Professor
 from schemas import StudentCreate, StudentResponse
+from typing import List
+from schemas import StudentGradeResponse
+from services import get_student_grades_service
 
 router = APIRouter(prefix="/students", tags=["Students"])
 
@@ -90,3 +93,25 @@ def delete_student(
     db.delete(student)
     db.commit()
     return None
+
+
+@router.get("/grades", response_model=List[StudentGradeResponse])
+def get_student_grades(
+    db: Session = Depends(get_db),
+    current_student = Depends(get_current_student)
+):
+    """
+    Endpoint za dobijanje svih ocena trenutno ulogovanog studenta
+    
+    - Vraća sve ocene sa informacijama o predmetu, ispitu i profesoru
+    - Sortira po datumu (najnovije prvo)
+    - Vraća samo prijave koje imaju unetu ocenu
+    """
+    try:
+        grades = get_student_grades_service(db, current_student.id)
+        return grades
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Greška pri učitavanju ocena: {str(e)}"
+        )

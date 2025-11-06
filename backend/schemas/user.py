@@ -4,6 +4,7 @@ User Pydantic šeme
 """
 from pydantic import BaseModel, Field, EmailStr
 from typing import Optional
+from datetime import datetime
 
 class StudentCreate(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
@@ -32,5 +33,18 @@ class ProfessorResponse(BaseModel):
     email: str
     subject: str
 
+    class Config:
+        from_attributes = True
+
+
+class StudentGradeResponse(BaseModel):
+    """Šema za prikaz ocene studenta"""
+    subject_name: str
+    exam_name: str
+    exam_date: datetime
+    grade: Optional[int] = None
+    points: Optional[int] = None
+    professor_name: str
+    
     class Config:
         from_attributes = True

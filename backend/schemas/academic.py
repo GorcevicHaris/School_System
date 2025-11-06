@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import date
 from models.enums import ExamType, ExamStatus
-
+from datetime import datetime
 class SubjectCreate(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
     espb: int = Field(..., ge=1, le=30)
@@ -60,5 +60,18 @@ class ExamRegistrationResponse(BaseModel):
     points: int
     status: ExamStatus
 
+    class Config:
+        from_attributes = True
+    
+
+class StudentGradeResponse(BaseModel):
+    """Šema za prikaz ocene studenta"""
+    subject_name: str
+    exam_name: str
+    exam_date: datetime
+    grade: Optional[int] = None
+    points: Optional[int] = None
+    professor_name: str
+    
     class Config:
         from_attributes = True

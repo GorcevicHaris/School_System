@@ -5,6 +5,7 @@ import Cookies from "js-cookie";
 export const AuthContext = createContext();
 
 const API_URL = process.env.REACT_APP_API_URL;
+
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(Cookies.get("token") || null);
   const [userId, setUserId] = useState(Cookies.get("user_id") || null);
@@ -27,7 +28,6 @@ export const AuthProvider = ({ children }) => {
     Cookies.set("user_id", user_id, { expires: 1 });
     Cookies.set("user_role", user_role, { expires: 1 });
   };
-  console.log(userRole, "rola");
   // ---------------------------------
   // AXIOS INTERCEPTOR
   // ---------------------------------
@@ -158,6 +158,18 @@ export const AuthProvider = ({ children }) => {
       return {
         success: false,
         error: err.response?.data?.detail || "Kreiranje studenta nije uspelo",
+      };
+    }
+  };
+
+  const getStudentGrades = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/students/grades`);
+      return { success: true, data: res.data };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.response?.data?.detail || "Učitavanje ocena nije uspelo",
       };
     }
   };
@@ -425,6 +437,7 @@ export const AuthProvider = ({ children }) => {
     createStudent,
     getStudents,
     updateStudent,
+    getStudentGrades,
     deleteStudent,
 
     // Subject CRUD
