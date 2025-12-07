@@ -7,7 +7,7 @@ def get_student_grades_service(db: Session, student_id: int):
         .join(Exam, ExamRegistration.exam_id == Exam.id)
         .join(Subject, Exam.subject_id == Subject.id)
         .join(Professor, Subject.professor_id == Professor.id)
-        .filter(ExamRegistration.student_id == student_id)  # ← bez uslova za ocenu!
+        .filter(ExamRegistration.student_id == student_id)  
         .options(
             joinedload(ExamRegistration.exam)
             .joinedload(Exam.subject)

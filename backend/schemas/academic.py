@@ -64,14 +64,3 @@ class ExamRegistrationResponse(BaseModel):
         from_attributes = True
     
 
-class StudentGradeResponse(BaseModel):
-    """Šema za prikaz ocene studenta"""
-    subject_name: str
-    exam_name: str
-    exam_date: datetime
-    grade: Optional[int] = None
-    points: Optional[int] = None
-    professor_name: str
-    
-    class Config:
-        from_attributes = True

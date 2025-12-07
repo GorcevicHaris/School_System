@@ -3,7 +3,6 @@ import { AuthContext } from "../Auth/AuthContext";
 import {
   FaCalendarPlus,
   FaCalendarAlt,
-  FaEdit,
   FaTrashAlt,
   FaTimes,
 } from "react-icons/fa";
@@ -49,7 +48,6 @@ const ExamFormModal = ({ subjects, professorId, onClose, onSave }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-50 flex justify-center items-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg transform transition-all">
-        {/* Header */}
         <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 rounded-t-2xl">
           <div className="flex items-center justify-between">
             <h3 className="text-2xl font-bold text-white flex items-center gap-2">
@@ -65,7 +63,6 @@ const ExamFormModal = ({ subjects, professorId, onClose, onSave }) => {
           </div>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -103,6 +100,7 @@ const ExamFormModal = ({ subjects, professorId, onClose, onSave }) => {
               name="date"
               value={formData.date}
               onChange={handleChange}
+              min={new Date().toISOString().split('T')[0]}
               required
               className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
             />
@@ -298,11 +296,10 @@ const ExamsPage = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <span
-                          className={`px-3 py-1.5 inline-flex items-center gap-1 text-xs font-bold rounded-full ${
-                            exam.type === "pismeni"
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-purple-100 text-purple-700"
-                          }`}
+                          className={`px-3 py-1.5 inline-flex items-center gap-1 text-xs font-bold rounded-full ${exam.type === "pismeni"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-purple-100 text-purple-700"
+                            }`}
                         >
                           {exam.type === "pismeni" ? "📝" : "🗣️"}
                           {exam.type}
@@ -363,11 +360,10 @@ const ExamsPage = () => {
                       {exam.subject_name}
                     </h3>
                     <span
-                      className={`px-3 py-1 inline-flex items-center gap-1 text-xs font-bold rounded-full whitespace-nowrap ${
-                        exam.type === "pismeni"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-purple-100 text-purple-700"
-                      }`}
+                      className={`px-3 py-1 inline-flex items-center gap-1 text-xs font-bold rounded-full whitespace-nowrap ${exam.type === "pismeni"
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-purple-100 text-purple-700"
+                        }`}
                     >
                       {exam.type === "pismeni" ? "📝" : "🗣️"}
                       {exam.type}
